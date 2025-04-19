@@ -440,7 +440,6 @@ ConVar tf_arena_preround_time;
 #include "vsh/command.sp"
 #include "vsh/console.sp"
 #include "vsh/cookies.sp"
-#include "vsh/dome.sp"
 #include "vsh/event.sp"
 #include "vsh/forward.sp"
 #include "vsh/hud.sp"
