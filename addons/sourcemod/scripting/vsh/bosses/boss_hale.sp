@@ -128,7 +128,6 @@ public void SaxtonHale_Create(SaxtonHaleBase boss)
 	boss.CreateClass("RageAddCond");
 	boss.SetPropFloat("RageAddCond", "RageCondDuration", 5.0);
 	boss.SetPropFloat("RageAddCond", "RageCondSuperRageMultiplier", 2.0);
-	RageAddCond_AddCond(boss, TFCond_SpeedBuffAlly);	// Speed boost effect
 	RageAddCond_AddCond(boss, TFCond_MegaHeal);			// Knockback & stun immunity
 	RageAddCond_AddCond(boss, TFCond_DefenseBuffed);	// Battalion's Resistance
 
@@ -164,7 +163,7 @@ public void SaxtonHale_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length
 public void SaxtonHale_OnSpawn(SaxtonHaleBase boss)
 {
 	char attribs[128];
-	Format(attribs, sizeof(attribs), "2 ; 2.80 ; 252 ; 0.5 ; 259 ; 1.0 ; 214 ; %d", GetRandomInt(9999, 99999));
+	Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0 ; 214 ; %d", GetRandomInt(9999, 99999));
 	int iWeapon = boss.CallFunction("CreateWeapon", 195, "tf_weapon_shovel", 100, TFQual_Strange, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
@@ -182,7 +181,7 @@ public void SaxtonHale_OnRage(SaxtonHaleBase boss)
 {
 	if (!g_bHaleSpeedRage[boss.iClient])
 	{
-		boss.flSpeed *= 1.3;
+		boss.flSpeed *= 1.08;
 		g_bHaleSpeedRage[boss.iClient] = true;
 	}
 }
@@ -192,7 +191,7 @@ public void SaxtonHale_OnThink(SaxtonHaleBase boss)
 	if (g_bHaleSpeedRage[boss.iClient] && boss.flRageLastTime < GetGameTime() - (boss.bSuperRage ? 8.0 : 5.0))
 	{
 		g_bHaleSpeedRage[boss.iClient] = false;
-		boss.flSpeed /= 1.3;
+		boss.flSpeed /= 1.07;
 	}
 }
 
