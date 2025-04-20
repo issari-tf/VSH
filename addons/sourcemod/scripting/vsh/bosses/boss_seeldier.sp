@@ -45,7 +45,7 @@ public void Seeldier_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length)
 public void Seeldier_OnSpawn(SaxtonHaleBase boss)
 {
 	char attribs[128];
-	Format(attribs, sizeof(attribs), "2 ; 1.9 ; 252 ; 0.5 ; 259 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 1.9 ; 252 ; 0.2 ; 259 ; 1.0");
 	int iWeapon = boss.CallFunction("CreateWeapon", 195, "tf_weapon_shovel", 100, TFQual_Collectors, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
