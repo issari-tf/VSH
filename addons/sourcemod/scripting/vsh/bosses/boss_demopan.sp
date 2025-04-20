@@ -95,7 +95,7 @@ public void DemoPan_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length)
 public void DemoPan_OnSpawn(SaxtonHaleBase boss)
 {
 	char attribs[128];
-	Format(attribs, sizeof(attribs), "2 ; 2.80 ; 252 ; 0.5 ; 259 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0");
 	int iWeapon = boss.CallFunction("CreateWeapon", 264, "tf_weapon_bottle", 100, TFQual_Collectors, attribs);	//Frying Pan Index, classname doesnt like saxxy
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
