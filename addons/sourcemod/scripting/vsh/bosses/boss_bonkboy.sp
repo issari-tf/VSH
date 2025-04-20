@@ -105,7 +105,7 @@ public void BonkBoy_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length)
 public void BonkBoy_OnSpawn(SaxtonHaleBase boss)
 {
 	char attribs[256];
-	Format(attribs, sizeof(attribs), "2 ; 3.54 ; 252 ; 0.5 ; 259 ; 1.0 ; 38 ; 1.0 ; 278 ; 0.5 ; 437 ; 65536.0 ; 524 ; 1.2 ; 551 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 2.3 ; 252 ; 0.0 ; 259 ; 1.0 ; 38 ; 1.0 ; 278 ; 0.5 ; 437 ; 65536.0 ; 524 ; 1.2 ; 551 ; 1.0");
 	int iWeapon = boss.CallFunction("CreateWeapon", 44, "tf_weapon_bat_wood", 1, TFQual_Collectors, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
