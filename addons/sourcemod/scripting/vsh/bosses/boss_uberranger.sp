@@ -102,7 +102,7 @@ public void UberRanger_OnSpawn(SaxtonHaleBase boss)
 	9: ubercharge rate penalty
 	*/
 	
-	strcopy(sAttribs, sizeof(sAttribs), "2 ; 2.80 ; 17 ; 0.1 ; 69 ; 0.5 ; 252 ; 0.5 ; 259 ; 1.0");
+	strcopy(sAttribs, sizeof(sAttribs), "2 ; 2.30 ; 17 ; 0.1 ; 69 ; 0.5 ; 252 ; 0.2 ; 259 ; 1.0");
 	int iWeapon = boss.CallFunction("CreateWeapon", 37, "tf_weapon_bonesaw", 100, TFQual_Collectors, sAttribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
