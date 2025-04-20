@@ -115,7 +115,7 @@ public void BrutalSniper_OnSpawn(SaxtonHaleBase boss)
 	int iWeapon;
 	char attribs[128];
 	
-	Format(attribs, sizeof(attribs), "2 ; 2.1 ; 6 ; 0.01 ; 280 ; 19 ; 551 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 2.3 ; 6 ; 0.01 ; 280 ; 19 ; 551 ; 1.0");
 	iWeapon = boss.CallFunction("CreateWeapon", 56, "tf_weapon_compound_bow", 100, TFQual_Collectors, attribs);
 	if (IsValidEntity(iWeapon)) 
 	{
@@ -132,7 +132,7 @@ public void BrutalSniper_OnSpawn(SaxtonHaleBase boss)
 	*/
 	
 	g_iBrutalSniperWeaponCooldown[boss.iClient][0] = BRUTALSNIPER_MAXWEAPONS - 2;	//Kukri
-	Format(attribs, sizeof(attribs), "2 ; 2.80 ; 252 ; 0.5 ; 259 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0");
 	iWeapon = boss.CallFunction("CreateWeapon", ITEM_KUKRI, "tf_weapon_club", 100, TFQual_Collectors, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
@@ -186,7 +186,7 @@ public void BrutalSniper_OnPlayerKilled(SaxtonHaleBase boss, Event event, int iV
 			
 			//Attribute for all melee weapons
 			char attribs[128];
-			Format(attribs, sizeof(attribs), "2 ; 2.80 ; 252 ; 0.5 ; 259 ; 1.0");
+			Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0");
 			
 			//Get new melee from random
 			switch (iRandom)
@@ -199,7 +199,7 @@ public void BrutalSniper_OnPlayerKilled(SaxtonHaleBase boss, Event event, int iV
 				case 1:
 				{
 					iIndex = ITEM_TRIBALMAN_SHIV;
-					Format(attribs, sizeof(attribs), "%s ; 1 ; 0.85 ; 149 ; 10.0", attribs);
+					Format(attribs, sizeof(attribs), "%s ; 1 ; 1.0 ; 149 ; 10.0", attribs);
 					//1: damage penalty
 					//149: On Hit: Bleed
 				}
