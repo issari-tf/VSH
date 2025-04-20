@@ -111,7 +111,7 @@ public void DemoRobot_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length)
 public void DemoRobot_OnSpawn(SaxtonHaleBase boss)
 {
 	char attribs[128];
-	Format(attribs, sizeof(attribs), "2 ; 2.80 ; 252 ; 0.5 ; 259 ; 1.0 ; 436 ; 1.0 ; 264 ; 0.73");
+	Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0 ; 436 ; 1.0 ; 264 ; 0.73");
 	int iWeapon = boss.CallFunction("CreateWeapon", 132, "tf_weapon_sword", 100, TFQual_Collectors, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
