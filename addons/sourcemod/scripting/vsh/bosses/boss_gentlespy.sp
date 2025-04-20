@@ -101,7 +101,7 @@ public void GentleSpy_OnSpawn(SaxtonHaleBase boss)
 	int iWeapon;
 	char attribs[128];
 	
-	Format(attribs, sizeof(attribs), "2 ; 8.0 ; 4 ; 1.34 ; 37 ; 0.0 ; 106 ; 0.0 ; 117 ; 0.0 ; 389 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 3.0 ; 4 ; 1.34 ; 37 ; 0.0 ; 106 ; 0.0 ; 117 ; 0.0 ; 389 ; 1.0");
 	iWeapon = boss.CallFunction("CreateWeapon", 61, "tf_weapon_revolver", 100, TFQual_Collectors, attribs);
 	if (iWeapon > MaxClients)
 	{
@@ -131,7 +131,7 @@ public void GentleSpy_OnSpawn(SaxtonHaleBase boss)
 	221: Attrib_DecloakRate
 	*/
 	
-	Format(attribs, sizeof(attribs), "2 ; 4.55 ; 252 ; 0.5 ; 259 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0");
 	iWeapon = boss.CallFunction("CreateWeapon", 194, "tf_weapon_knife", 100, TFQual_Collectors, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
