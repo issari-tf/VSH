@@ -351,6 +351,7 @@ ConVar tf_stealth_damage_reduction;
 ConVar tf_feign_death_duration;
 ConVar tf_feign_death_speed_duration;
 ConVar tf_arena_preround_time;
+ConVar tf_movement_aircurrent_aircontrol_mult; 0.25
 
 #include "vsh/base_boss.sp"
 
