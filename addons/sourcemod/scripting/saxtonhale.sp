@@ -340,18 +340,18 @@ int g_iTotalAttackCount;
 //ConVars
 ConVar tf_arena_use_queue;
 ConVar mp_teams_unbalance_limit;
-ConVar tf_arena_first_blood;
+ConVar tf_arena_first_blood; 0
 ConVar tf_dropped_weapon_lifetime;
 ConVar mp_forcecamera;
 ConVar tf_scout_hype_pep_max;
-ConVar tf_damage_disablespread;
+ConVar tf_damage_disablespread; 1
 ConVar tf_feign_death_activate_damage_scale;
-ConVar tf_feign_death_damage_scale;
-ConVar tf_stealth_damage_reduction;
-ConVar tf_feign_death_duration;
-ConVar tf_feign_death_speed_duration;
-ConVar tf_arena_preround_time;
-ConVar tf_movement_aircurrent_aircontrol_mult; 0.25
+ConVar tf_feign_death_damage_scale; 
+ConVar tf_stealth_damage_reduction; 
+ConVar tf_feign_death_duration; 7
+ConVar tf_feign_death_speed_duration; 3
+ConVar tf_arena_preround_time; 
+ConVar tf_movement_aircurrent_aircontrol_mult; 1.0
 
 #include "vsh/base_boss.sp"
 
