@@ -338,6 +338,7 @@ int g_iTotalRoundPlayed;
 int g_iTotalAttackCount;
 
 //ConVars
+ConVar sv_alltalk; 1
 ConVar tf_arena_use_queue;
 ConVar mp_teams_unbalance_limit;
 ConVar tf_arena_first_blood; 0
@@ -345,6 +346,7 @@ ConVar tf_dropped_weapon_lifetime;
 ConVar mp_forcecamera;
 ConVar tf_scout_hype_pep_max;
 ConVar tf_damage_disablespread; 1
+ConVar tf_use_fixed_weaponspread; 1
 ConVar tf_feign_death_activate_damage_scale;
 ConVar tf_feign_death_damage_scale; 
 ConVar tf_stealth_damage_reduction; 
@@ -365,7 +367,6 @@ ConVar tf_movement_aircurrent_aircontrol_mult; 1.0
 #include "vsh/abilities/ability_rage_bomb_projectile.sp"
 #include "vsh/abilities/ability_rage_conditions.sp"
 #include "vsh/abilities/ability_rage_freeze.sp"
-#include "vsh/abilities/ability_rage_gas.sp"
 #include "vsh/abilities/ability_rage_ghost.sp"
 #include "vsh/abilities/ability_rage_light.sp"
 #include "vsh/abilities/ability_rage_meteor.sp"
@@ -482,12 +483,14 @@ public void OnPluginStart()
 	AddMultiTargetFilter("@!boss", BossTargetFilter, "all non-bosses", false);
 
 	//Collect the convars
+	sv_alltalk = FindConvar ("sv_alltalk")
 	tf_arena_use_queue = FindConVar("tf_arena_use_queue");
 	mp_teams_unbalance_limit = FindConVar("mp_teams_unbalance_limit");
 	tf_arena_first_blood = FindConVar("tf_arena_first_blood");
 	tf_dropped_weapon_lifetime = FindConVar("tf_dropped_weapon_lifetime");
 	mp_forcecamera = FindConVar("mp_forcecamera");
 	tf_scout_hype_pep_max = FindConVar("tf_scout_hype_pep_max");
+	tf_use_fixed_weaponspread = FindConvar("tf_use_fixed_weaponspread;")
 	tf_damage_disablespread = FindConVar("tf_damage_disablespread");
 	tf_feign_death_activate_damage_scale = FindConVar("tf_feign_death_activate_damage_scale");
 	tf_feign_death_damage_scale = FindConVar("tf_feign_death_damage_scale");
@@ -668,7 +671,6 @@ public void OnPluginStart()
 	SaxtonHale_RegisterClass("Horsemann", VSHClassType_Boss);
 	SaxtonHale_RegisterClass("Merasmus", VSHClassType_Boss);
 	SaxtonHale_RegisterClass("PainisCupcake", VSHClassType_Boss);
-	SaxtonHale_RegisterClass("PyroCar", VSHClassType_Boss);
 	SaxtonHale_RegisterClass("Redmond", VSHClassType_Boss);
 	SaxtonHale_RegisterClass("Seeldier", VSHClassType_Boss);
 	SaxtonHale_RegisterClass("SeeMan", VSHClassType_Boss);
@@ -697,7 +699,6 @@ public void OnPluginStart()
 	SaxtonHale_RegisterClass("RageAttributes", VSHClassType_Ability);
 	SaxtonHale_RegisterClass("RageAddCond", VSHClassType_Ability);
 	SaxtonHale_RegisterClass("RageFreeze", VSHClassType_Ability);
-	SaxtonHale_RegisterClass("RageGas", VSHClassType_Ability);
 	SaxtonHale_RegisterClass("RageGhost", VSHClassType_Ability);
 	SaxtonHale_RegisterClass("LightRage", VSHClassType_Ability);
 	SaxtonHale_RegisterClass("RageMeteor", VSHClassType_Ability);
