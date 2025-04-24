@@ -79,7 +79,7 @@ public void Yeti_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length)
 
 public void Yeti_OnSpawn(SaxtonHaleBase boss)
 {
-	int iWeapon = boss.CallFunction("CreateWeapon", 195, NULL_STRING, 100, TFQual_Strange, "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0");
+	int iWeapon = boss.CallFunction("CreateWeapon", 195, NULL_STRING, 100, TFQual_Strange, "2 ; 2.31 ; 252 ; 0.2 ; 259 ; 1.0 ; 812 ; 2.0");
 	if (iWeapon > MaxClients)
 	{
 		TF2Attrib_SetByDefIndex(iWeapon, 214, view_as<float>(GetRandomInt(7500, 7615)));
