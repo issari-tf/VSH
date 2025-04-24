@@ -109,7 +109,7 @@ public void Announcer_OnSpawn(SaxtonHaleBase boss)
 	117: Attrib_Dmg_Falloff_Increased	//Doesnt even work thanks valve
 	*/
 	
-	Format(attribs, sizeof(attribs), "2 ; 2.3 ; 252 ; 0.2 ; 259 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 3.75 ; 252 ; 0.2 ; 259 ; 1.0 ; 812 ; 2.0");
 	iWeapon = boss.CallFunction("CreateWeapon", 194, "tf_weapon_knife", 100, TFQual_Collectors, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
