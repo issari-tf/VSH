@@ -29,7 +29,7 @@ public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcas
 		return;
 	
 	// Start dome stuffs regardless if first round
-	Dome_RoundStart();
+	//Dome_RoundStart();
 
 	// Play one round of arena
 	if (g_iTotalRoundPlayed <= 0)
@@ -273,7 +273,7 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
 		if (IsClientInGame(i))
 			Hud_Display(i, CHANNEL_INTRO, sMessage, flHUD, 5.0, iColor, 0, 0.0, flFade);
 
-	Dome_RoundArenaStart();
+	//Dome_RoundArenaStart();
 
 	//Display chat on who is next boss
 	int iNextPlayer = Queue_GetPlayerFromRank(1);
@@ -454,8 +454,8 @@ public void Event_PointCaptured(Event event, const char[] sName, bool bDontBroad
 {
 	if (!g_bEnabled) return;
 	
-	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
-	Dome_SetTeam(nTeam);
+	//TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
+	//Dome_SetTeam(nTeam);
 }
 
 public void Event_BroadcastAudio(Event event, const char[] sName, bool bDontBroadcast)

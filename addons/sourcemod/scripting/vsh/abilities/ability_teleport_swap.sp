@@ -95,11 +95,11 @@ public void TeleportSwap_OnButtonRelease(SaxtonHaleBase boss, int button)
 			}
 			
 			// Deny teleporting when out of the dome
-			if (Dome_IsEntityOutside(boss.iClient))
-			{
-				PrintHintText(boss.iClient, "Can't teleport-swap when outside of the dome.");
-				return;
-			}
+			//if (Dome_IsEntityOutside(boss.iClient))
+			//{
+			//	PrintHintText(boss.iClient, "Can't teleport-swap when outside of the dome.");
+			//	return;
+		    //}
 			
 			// Get a list of valid attackers
 			ArrayList aClients = new ArrayList();
@@ -120,15 +120,15 @@ public void TeleportSwap_OnButtonRelease(SaxtonHaleBase boss, int button)
 			int iClient[2];
 			iClient[0] = boss.iClient;
 			
-			for (int i = 0; i < aClients.Length; i++)
-			{
-				int iTarget = aClients.Get(i);
-				if (Dome_IsEntityOutside(iTarget))
-					continue;
-				
-				iClient[1] = iTarget;
-				break;
-			}
+			//for (int i = 0; i < aClients.Length; i++)
+			//{
+			//	int iTarget = aClients.Get(i);
+			//	if (Dome_IsEntityOutside(iTarget))
+			//		continue;
+			//	
+			//	iClient[1] = iTarget;
+			//	break;
+			//}
 			
 			delete aClients;
 			

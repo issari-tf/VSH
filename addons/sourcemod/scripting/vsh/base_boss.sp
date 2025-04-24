@@ -18,11 +18,11 @@ public void SaxtonHaleBoss_Create(SaxtonHaleBase boss)
 	boss.flHealthMultiplier = 1.0;
 	boss.bHealthPerPlayerAlive = false;
 	
-	boss.flSpeed = 320.0;
+	boss.flSpeed = 370.0;
 	boss.flSpeedMult = 0.07;
-	boss.flMaxRagePercentage = 1.5;
+	boss.flMaxRagePercentage = 2.0;
 	boss.iRageDamage = 0;
-	boss.flEnvDamageCap = 500.0;
+	boss.flEnvDamageCap = 200.0;
 	boss.flGlowTime = 0.0;
 	
 	boss.bMinion = false;
@@ -291,6 +291,23 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
 		boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Pain);
 		if (!StrEmpty(sSound))
 			EmitSoundToAll(sSound, boss.iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+	}
+
+	//if (GetEntityFlags(boss.iClient) & FL_ONGROUND || TF2_IsUbercharged(boss.iClient))
+	//{
+	//	damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+	//	action = Plugin_Changed;
+	//}
+
+	if (inflictor > MaxClients && !boss.bMinion)
+	{
+		char sInflictor[32];
+		GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
+		if (strcmp(sInflictor, "tf_projectile_sentryrocket") == 0 || strcmp(sInflictor, "obj_sentrygun") == 0)
+		{
+			damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+			action = Plugin_Changed;
+		}
 	}
 
 	if (MaxClients < attacker)

@@ -36,7 +36,7 @@ public void Command_Init()
 	Command_Create("queue", Command_AddQueuePoints);
 	Command_Create("point", Command_AddQueuePoints);
 	Command_Create("special", Command_ForceSpecialRound);
-	Command_Create("dome", Command_ForceDome);
+	//Command_Create("dome", Command_ForceDome);
 	Command_Create("rage", Command_SetRage);
 }
 
@@ -403,6 +403,7 @@ public Action Command_ForceSpecialRound(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
+/*
 public Action Command_ForceDome(int iClient, int iArgs)
 {
 	if (!g_bEnabled) return Plugin_Continue;
@@ -456,6 +457,7 @@ public Action Command_ForceDome(int iClient, int iArgs)
 	ReplyToCommand(iClient, "%s%s You do not have permission to use this command.", TEXT_TAG, TEXT_ERROR);
 	return Plugin_Handled;
 }
+*/
 
 public Action Command_SetRage(int iClient, int iArgs)
 {

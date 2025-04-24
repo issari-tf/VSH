@@ -338,22 +338,22 @@ int g_iTotalRoundPlayed;
 int g_iTotalAttackCount;
 
 //ConVars
-ConVar sv_alltalk; 1
+ConVar sv_alltalk; // 1
 ConVar tf_arena_use_queue;
 ConVar mp_teams_unbalance_limit;
-ConVar tf_arena_first_blood; 0
+ConVar tf_arena_first_blood; // 0
 ConVar tf_dropped_weapon_lifetime;
 ConVar mp_forcecamera;
 ConVar tf_scout_hype_pep_max;
-ConVar tf_damage_disablespread; 1
-ConVar tf_use_fixed_weaponspread; 1
+ConVar tf_damage_disablespread; // 1
+ConVar tf_use_fixed_weaponspread; // 1
 ConVar tf_feign_death_activate_damage_scale;
 ConVar tf_feign_death_damage_scale; 
 ConVar tf_stealth_damage_reduction; 
-ConVar tf_feign_death_duration; 7
-ConVar tf_feign_death_speed_duration; 3
+ConVar tf_feign_death_duration; // 7
+ConVar tf_feign_death_speed_duration; // 3
 ConVar tf_arena_preround_time; 
-ConVar tf_movement_aircurrent_aircontrol_mult; 1.0
+ConVar tf_movement_aircurrent_aircontrol_mult; // 1.0
 
 #include "vsh/base_boss.sp"
 
@@ -483,14 +483,14 @@ public void OnPluginStart()
 	AddMultiTargetFilter("@!boss", BossTargetFilter, "all non-bosses", false);
 
 	//Collect the convars
-	sv_alltalk = FindConvar ("sv_alltalk")
+	sv_alltalk = FindConVar("sv_alltalk");
 	tf_arena_use_queue = FindConVar("tf_arena_use_queue");
 	mp_teams_unbalance_limit = FindConVar("mp_teams_unbalance_limit");
 	tf_arena_first_blood = FindConVar("tf_arena_first_blood");
 	tf_dropped_weapon_lifetime = FindConVar("tf_dropped_weapon_lifetime");
 	mp_forcecamera = FindConVar("mp_forcecamera");
 	tf_scout_hype_pep_max = FindConVar("tf_scout_hype_pep_max");
-	tf_use_fixed_weaponspread = FindConvar("tf_use_fixed_weaponspread;")
+	tf_use_fixed_weaponspread = FindConVar("tf_use_fixed_weaponspread");
 	tf_damage_disablespread = FindConVar("tf_damage_disablespread");
 	tf_feign_death_activate_damage_scale = FindConVar("tf_feign_death_activate_damage_scale");
 	tf_feign_death_damage_scale = FindConVar("tf_feign_death_damage_scale");
@@ -515,7 +515,7 @@ public void OnPluginStart()
 	Command_Init();
 	Console_Init();
 	Cookies_Init();
-	Dome_Init();
+	//Dome_Init();
 	Event_Init();
 	FuncClass_Init();
 	FuncHook_Init();
@@ -950,10 +950,10 @@ public void OnMapStart()
 		g_iSpritesLaserbeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
 		g_iSpritesGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
 		
-		Dome_MapStart();
+		//Dome_MapStart();
 		
 		CreateTimer(60.0, Timer_WelcomeMessage);
-		CreateTimer(240.0, Timer_WelcomeMessage, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+		//CreateTimer(240.0, Timer_WelcomeMessage, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
 		
 		g_bEnabled = true;
 	}
@@ -1021,15 +1021,15 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	}
 	else if (StrEqual(sClassname, "team_control_point_master"))
 	{
-		SDKHook(iEntity, SDKHook_Spawn, Dome_MasterSpawn);
+		//SDKHook(iEntity, SDKHook_Spawn, Dome_MasterSpawn);
 	}
 	else if (StrEqual(sClassname, "trigger_capture_area"))
 	{
-		SDKHook(iEntity, SDKHook_Spawn, Dome_TriggerSpawn);
+		//SDKHook(iEntity, SDKHook_Spawn, Dome_TriggerSpawn);
 		
-		SDKHook(iEntity, SDKHook_StartTouch, Dome_TriggerTouch);
-		SDKHook(iEntity, SDKHook_Touch, Dome_TriggerTouch);
-		SDKHook(iEntity, SDKHook_EndTouch, Dome_TriggerTouch);
+		//SDKHook(iEntity, SDKHook_StartTouch, Dome_TriggerTouch);
+		//SDKHook(iEntity, SDKHook_Touch, Dome_TriggerTouch);
+		//SDKHook(iEntity, SDKHook_EndTouch, Dome_TriggerTouch);
 	}
 	else if (StrEqual(sClassname, "game_end"))
 	{
@@ -1335,7 +1335,7 @@ public void Client_OnThink(int iClient)
 {
 	if (!g_bEnabled) return;
 	
-	Dome_OnThink(iClient);
+	//Dome_OnThink(iClient);
 	
 	if (g_iTotalRoundPlayed <= 0) return;
 	
