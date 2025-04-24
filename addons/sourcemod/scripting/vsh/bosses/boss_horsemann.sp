@@ -102,7 +102,7 @@ public void Horsemann_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length)
 public void Horsemann_OnSpawn(SaxtonHaleBase boss)
 {
 	char attribs[128];
-	Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.33 ; 259 ; 1.0 ; 264 ; 0.73 ; 551 ; 1");
+	Format(attribs, sizeof(attribs), "2 ; 2.31 ; 252 ; 0.33 ; 259 ; 1.0 ; 264 ; 0.73 ; 551 ; 1 ; 812 ; 2.0");
 	int iWeapon = boss.CallFunction("CreateWeapon", 266, "tf_weapon_sword", 100, TFQual_Unusual, attribs);
 
 	if (iWeapon > MaxClients)
