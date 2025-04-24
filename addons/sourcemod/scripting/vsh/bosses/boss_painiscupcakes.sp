@@ -144,7 +144,7 @@ public void PainisCupcake_OnRage(SaxtonHaleBase boss)
 public void PainisCupcake_OnSpawn(SaxtonHaleBase boss)
 {
 	char attribs[128];
-	Format(attribs, sizeof(attribs), "2 ; 2.30 ; 252 ; 0.2 ; 259 ; 1.0");
+	Format(attribs, sizeof(attribs), "2 ; 2.31 ; 252 ; 0.2 ; 259 ; 1.0 ; ; 812 ; 2.0");
 	int iWeapon = boss.CallFunction("CreateWeapon", 195, "tf_weapon_shovel", 100, TFQual_Strange, attribs);
 	if (iWeapon > MaxClients)
 		SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
