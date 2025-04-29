@@ -1,5 +1,5 @@
 #if defined _saxtonhale_included
-	#endinput
+  #endinput
 #endif
 #define _saxtonhale_included
 
@@ -10,23 +10,23 @@
  */
 enum TFQuality
 {
-	TFQual_None = -1,
-	TFQual_Normal = 0,
-	TFQual_Genuine,
-	TFQual_Rarity2,         /**< Unused */
-	TFQual_Vintage,
-	TFQual_Rarity3,         /**< Unused */
-	TFQual_Unusual,
-	TFQual_Unique,
-	TFQual_Community,
-	TFQual_Developer,       /**< Known as Valve Quality */
-	TFQual_Selfmade,
-	TFQual_Customized,      /**< Unused */
-	TFQual_Strange,
-	TFQual_Completed,       /**< Unused */
-	TFQual_Haunted,
-	TFQual_Collectors,
-	TFQual_Decorated,
+  TFQual_None = -1,
+  TFQual_Normal = 0,
+  TFQual_Genuine,
+  TFQual_Rarity2,         /**< Unused */
+  TFQual_Vintage,
+  TFQual_Rarity3,         /**< Unused */
+  TFQual_Unusual,
+  TFQual_Unique,
+  TFQual_Community,
+  TFQual_Developer,       /**< Known as Valve Quality */
+  TFQual_Selfmade,
+  TFQual_Customized,      /**< Unused */
+  TFQual_Strange,
+  TFQual_Completed,       /**< Unused */
+  TFQual_Haunted,
+  TFQual_Collectors,
+  TFQual_Decorated,
 };
 
 /**
@@ -34,10 +34,10 @@ enum TFQuality
  */
 enum SaxtonHaleArrayType
 {
-	VSHArrayType_None,      /**< Not Param_String or Param_Array */
-	VSHArrayType_Const,     /**< Only works on Param_String. Length same as size of string, and always constant */
-	VSHArrayType_Static,    /**< Data is the fixed length of array */
-	VSHArrayType_Dynamic,   /**< Data is Param_Cell param position for length of array, starting from 1 */
+  VSHArrayType_None,      /**< Not Param_String or Param_Array */
+  VSHArrayType_Const,     /**< Only works on Param_String. Length same as size of string, and always constant */
+  VSHArrayType_Static,    /**< Data is the fixed length of array */
+  VSHArrayType_Dynamic,   /**< Data is Param_Cell param position for length of array, starting from 1 */
 }
 
 /**
@@ -45,39 +45,39 @@ enum SaxtonHaleArrayType
  */
 methodmap SaxtonHaleFunction
 {
-	// Initialize a function for methodmap class to use
-	//
-	// Supported ParamType for calling boss functions:
-	// Param_Cell
-	// Param_CellByRef
-	// Param_Float
-	// Param_FloatByRef
-	// Param_String (Default array type VSHArrayType_Const)
-	// Param_Array (Default array type VSHArrayType_Static with size 1)
-	//
-	// @param sFunction         Name of function to create.
-	// @param nExecType         Execution type to be used.
-	// @param ...               Variable number of parameter types
-	// @return                  Boss Function Id
-	// @error                   Function name already initialized, too many ParamType passed, or unsupported ParamType
-	public native SaxtonHaleFunction(const char[] sFunction, ExecType nExecType, ParamType...);
-	
-	// Add parameter type to this function
-	//
-	// @param nParamType        Type of parameter
-	// @param nArrayType        If string or array, how should size of array be handled?
-	// @param iArrayData        Data of nArrayType to be handled
-	// @error                   Reached max param size, or invalid param type and array type combined
-	public native void AddParam(ParamType nParamType, SaxtonHaleArrayType nArrayType = VSHArrayType_None, int iArrayData = 0);
-	
-	// Set parameter type to this function, overriding old param
-	//
-	// @param iParam            Parameter to set, starting from 1
-	// @param nParamType        Type of parameter
-	// @param nArrayType        If string or array, how should size of array be handled?
-	// @param iArrayData        Data of nArrayType to be handled
-	// @error                   Invalid parameter number, or invalid param type and array type combined
-	public native void SetParam(int iParam, ParamType nParamType, SaxtonHaleArrayType nArrayType = VSHArrayType_None, int iArrayData = 0);
+  // Initialize a function for methodmap class to use
+  //
+  // Supported ParamType for calling boss functions:
+  // Param_Cell
+  // Param_CellByRef
+  // Param_Float
+  // Param_FloatByRef
+  // Param_String (Default array type VSHArrayType_Const)
+  // Param_Array (Default array type VSHArrayType_Static with size 1)
+  //
+  // @param sFunction         Name of function to create.
+  // @param nExecType         Execution type to be used.
+  // @param ...               Variable number of parameter types
+  // @return                  Boss Function Id
+  // @error                   Function name already initialized, too many ParamType passed, or unsupported ParamType
+  public native SaxtonHaleFunction(const char[] sFunction, ExecType nExecType, ParamType...);
+  
+  // Add parameter type to this function
+  //
+  // @param nParamType        Type of parameter
+  // @param nArrayType        If string or array, how should size of array be handled?
+  // @param iArrayData        Data of nArrayType to be handled
+  // @error                   Reached max param size, or invalid param type and array type combined
+  public native void AddParam(ParamType nParamType, SaxtonHaleArrayType nArrayType = VSHArrayType_None, int iArrayData = 0);
+  
+  // Set parameter type to this function, overriding old param
+  //
+  // @param iParam            Parameter to set, starting from 1
+  // @param nParamType        Type of parameter
+  // @param nArrayType        If string or array, how should size of array be handled?
+  // @param iArrayData        Data of nArrayType to be handled
+  // @error                   Invalid parameter number, or invalid param type and array type combined
+  public native void SetParam(int iParam, ParamType nParamType, SaxtonHaleArrayType nArrayType = VSHArrayType_None, int iArrayData = 0);
 }
 
 /**
@@ -85,11 +85,11 @@ methodmap SaxtonHaleFunction
  */
 enum SaxtonHaleClassType
 {
-	VSHClassType_Core,      /**< Core Class from main plugin, called for every client bosses */
-	VSHClassType_Boss,      /**< Boss */
-	VSHClassType_BossMulti,	/**< Multi Boss */
-	VSHClassType_Ability,   /**< Ability */
-	VSHClassType_Modifier,  /**< Modifier */
+  VSHClassType_Core,      /**< Core Class from main plugin, called for every client bosses */
+  VSHClassType_Boss,      /**< Boss */
+  VSHClassType_BossMulti,	/**< Multi Boss */
+  VSHClassType_Ability,   /**< Ability */
+  VSHClassType_Modifier,  /**< Modifier */
 };
 
 /**
@@ -153,15 +153,15 @@ native any SaxtonHale_CallFunction(const char[] sClass, const char[] sFunction, 
  */
 enum SaxtonHaleSound
 {
-	VSHSound_RoundStart,
-	VSHSound_Win,
-	VSHSound_Lose,
-	VSHSound_Pain,
-	VSHSound_Rage,
-	VSHSound_KillBuilding,
-	VSHSound_Lastman,
-	VSHSound_Backstab,
-	VSHSound_Death,
+  VSHSound_RoundStart,
+  VSHSound_Win,
+  VSHSound_Lose,
+  VSHSound_Pain,
+  VSHSound_Rage,
+  VSHSound_KillBuilding,
+  VSHSound_Lastman,
+  VSHSound_Backstab,
+  VSHSound_Death,
 };
 
 /**
@@ -169,258 +169,258 @@ enum SaxtonHaleSound
  */
 methodmap SaxtonHaleBase
 {
-	public SaxtonHaleBase(int iClient)
-	{
-		return view_as<SaxtonHaleBase>(iClient);
-	}
-	
-	// Creates a class to client
-	//
-	// @param sClass        Class name to create
-	// @error               Invalid class name passed
-	public native void CreateClass(const char[] sClass);
-	
-	// Return whenever if client has specified class
-	//
-	// @param sClass        Class name to check
-	// @return			    True if client have class, false otherwise
-	public native bool HasClass(const char[] sClass);
-	
-	// Destroys a class to client
-	//
-	// @param sClass        Class name to destroy
-	// @error               Invalid class name passed
-	public native void DestroyClass(const char[] sClass);
-	
-	// Destroy all classes client has
-	public native bool DestroyAllClass();
-	
-	// Calls a function to client boss
-	//
-	// @note String and arrays passed have max size 512, exceeding further can cause crashes
-	//
-	// @param sName         Name of function to call
-	// @param ...           Params of function
-	// @return			    Return value of function
-	// @error               Invalid function name, too few params expected, incorrect ParamType or reached max allowed call stack.
-	public native any CallFunction(const char[] sName, any...);
-	
-	// Starts a function to specified constructor and function name, ignoring hooks
-	//
-	// @param sClass        Class name to call
-	// @param sFunction     Function name to call
-	// @return              True if found and function call started, false if function does not exist
-	public bool StartFunction(const char[] sClass, const char[] sFunction)
-	{
-		Handle hPlugin = SaxtonHale_GetPlugin(sClass);
-		if (hPlugin == null)
-			return false;
-		
-		char sBuffer[64];
-		Format(sBuffer, sizeof(sBuffer), "%s_%s", sClass, sFunction);
-		
-		Function func = GetFunctionByName(hPlugin, sBuffer);
-		if (func == INVALID_FUNCTION)
-			return false;
-		
-		Call_StartFunction(hPlugin, func);
-		Call_PushCell(this);
-		return true;
-	}
-	
-	// Get an int property from type
-	//
-	// @param sClass        Name of type to get
-	// @param sProp         Property name to get
-	// @return              Value of property
-	// @error               Invalid client index, client not in game, or client do not have specified class
-	public native int GetPropInt(const char[] sClass, const char[] sProp);
-	
-	// Get a float property from type
-	//
-	// @param sClass        Name of type to get
-	// @param sProp         Property name to get
-	// @return              Value of property
-	// @error               Invalid client index, client not in game, or client do not have specified class
-	public native float GetPropFloat(const char[] sClass, const char[] sProp);
-	
-	// Set an int property to type
-	//
-	// @param sClass        Name of type to set
-	// @param sProp         Property name to set
-	// @param iVal          Value to set
-	// @error               Invalid client index, client not in game, or client do not have specified class
-	public native void SetPropInt(const char[] sClass, const char[] sProp, int iVal);
-	
-	// Set a float property to type
-	//
-	// @param sClass        Name of type to set
-	// @param sProp         Property name to set
-	// @param iVal          Value to set
-	// @error               Invalid client index, client not in game, or client do not have specified class
-	public native void SetPropFloat(const char[] sClass, const char[] sProp, float flVal);
-	
-	// Retrieve client index.
-	property int iClient
-	{
-		public get()
-		{
-			return view_as<int>(this);
-		}
-	}
-	
-	// Retrieve/Set whenever if client is active boss
-	property bool bValid
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve/Set whenever if client is active modifiers
-	property bool bModifiers
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve/Set whenever if boss is a minion
-	property bool bMinion
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve whenever if current/previous rage is a super rage
-	property bool bSuperRage
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve/Set whenever if boss should have custom model, and remove cosmetics
-	property bool bModel
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve/Set whether the boss' max health calculation should consider currently-living players or the playercount at the beginning of the round
-	property bool bHealthPerPlayerAlive
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve/Set max speed
-	property float flSpeed
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set speed multiplier at zero health
-	property float flSpeedMult
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set max env damage to be teleported to spawn
-	property float flEnvDamageCap
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set time remaining for glow to end in seconds, 0.0 for no glow, -1.0 for permanent 
-	property float flGlowTime
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set rage previously used in seconds, -1.0 if had not use rage yet
-	property float flRageLastTime
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set max rage precentage
-	property float flMaxRagePercentage
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set health exponential to calculate
-	property float flHealthExponential
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set health multiplier to calculate 
-	property float flHealthMultiplier
-	{
-		public native get();
-		public native set(float val);
-	}
-	
-	// Retrieve/Set current health
-	property int iHealth
-	{
-		public get()
-		{
-			return GetEntProp(this.iClient, Prop_Send, "m_iHealth");
-		}
-		public set(int val)
-		{
-			SetEntProp(this.iClient, Prop_Send, "m_iHealth", val);
-		}
-	}
-	
-	// Retrieve/Set max health
-	property int iMaxHealth
-	{
-		public native get();
-		public native set(int val);
-	}
-	
-	// Retrieve/Set base health
-	property int iBaseHealth
-	{
-		public native get();
-		public native set(int val);
-	}
-	
-	// Retrieve/Set health per player
-	property int iHealthPerPlayer
-	{
-		public native get();
-		public native set(int val);
-	}
-	
-	// Retrieve/Set current damage gained for rage
-	property int iRageDamage
-	{
-		public native get();
-		public native set(int val);
-	}
-	
-	// Retrieve/Set damage required to reach 100% rage, -1 if no rage
-	property int iMaxRageDamage
-	{
-		public native get();
-		public native set(int val);
-	}
-	
-	// Retrieve/Set boss class
-	property TFClassType nClass
-	{
-		public native get();
-		public native set(TFClassType val);
-	}
+  public SaxtonHaleBase(int iClient)
+  {
+    return view_as<SaxtonHaleBase>(iClient);
+  }
+  
+  // Creates a class to client
+  //
+  // @param sClass        Class name to create
+  // @error               Invalid class name passed
+  public native void CreateClass(const char[] sClass);
+  
+  // Return whenever if client has specified class
+  //
+  // @param sClass        Class name to check
+  // @return			    True if client have class, false otherwise
+  public native bool HasClass(const char[] sClass);
+  
+  // Destroys a class to client
+  //
+  // @param sClass        Class name to destroy
+  // @error               Invalid class name passed
+  public native void DestroyClass(const char[] sClass);
+  
+  // Destroy all classes client has
+  public native bool DestroyAllClass();
+  
+  // Calls a function to client boss
+  //
+  // @note String and arrays passed have max size 512, exceeding further can cause crashes
+  //
+  // @param sName         Name of function to call
+  // @param ...           Params of function
+  // @return			    Return value of function
+  // @error               Invalid function name, too few params expected, incorrect ParamType or reached max allowed call stack.
+  public native any CallFunction(const char[] sName, any...);
+  
+  // Starts a function to specified constructor and function name, ignoring hooks
+  //
+  // @param sClass        Class name to call
+  // @param sFunction     Function name to call
+  // @return              True if found and function call started, false if function does not exist
+  public bool StartFunction(const char[] sClass, const char[] sFunction)
+  {
+    Handle hPlugin = SaxtonHale_GetPlugin(sClass);
+    if (hPlugin == null)
+      return false;
+    
+    char sBuffer[64];
+    Format(sBuffer, sizeof(sBuffer), "%s_%s", sClass, sFunction);
+    
+    Function func = GetFunctionByName(hPlugin, sBuffer);
+    if (func == INVALID_FUNCTION)
+      return false;
+    
+    Call_StartFunction(hPlugin, func);
+    Call_PushCell(this);
+    return true;
+  }
+  
+  // Get an int property from type
+  //
+  // @param sClass        Name of type to get
+  // @param sProp         Property name to get
+  // @return              Value of property
+  // @error               Invalid client index, client not in game, or client do not have specified class
+  public native int GetPropInt(const char[] sClass, const char[] sProp);
+  
+  // Get a float property from type
+  //
+  // @param sClass        Name of type to get
+  // @param sProp         Property name to get
+  // @return              Value of property
+  // @error               Invalid client index, client not in game, or client do not have specified class
+  public native float GetPropFloat(const char[] sClass, const char[] sProp);
+  
+  // Set an int property to type
+  //
+  // @param sClass        Name of type to set
+  // @param sProp         Property name to set
+  // @param iVal          Value to set
+  // @error               Invalid client index, client not in game, or client do not have specified class
+  public native void SetPropInt(const char[] sClass, const char[] sProp, int iVal);
+  
+  // Set a float property to type
+  //
+  // @param sClass        Name of type to set
+  // @param sProp         Property name to set
+  // @param iVal          Value to set
+  // @error               Invalid client index, client not in game, or client do not have specified class
+  public native void SetPropFloat(const char[] sClass, const char[] sProp, float flVal);
+  
+  // Retrieve client index.
+  property int iClient
+  {
+    public get()
+    {
+      return view_as<int>(this);
+    }
+  }
+  
+  // Retrieve/Set whenever if client is active boss
+  property bool bValid
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve/Set whenever if client is active modifiers
+  property bool bModifiers
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve/Set whenever if boss is a minion
+  property bool bMinion
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve whenever if current/previous rage is a super rage
+  property bool bSuperRage
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve/Set whenever if boss should have custom model, and remove cosmetics
+  property bool bModel
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve/Set whether the boss' max health calculation should consider currently-living players or the playercount at the beginning of the round
+  property bool bHealthPerPlayerAlive
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve/Set max speed
+  property float flSpeed
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set speed multiplier at zero health
+  property float flSpeedMult
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set max env damage to be teleported to spawn
+  property float flEnvDamageCap
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set time remaining for glow to end in seconds, 0.0 for no glow, -1.0 for permanent 
+  property float flGlowTime
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set rage previously used in seconds, -1.0 if had not use rage yet
+  property float flRageLastTime
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set max rage precentage
+  property float flMaxRagePercentage
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set health exponential to calculate
+  property float flHealthExponential
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set health multiplier to calculate 
+  property float flHealthMultiplier
+  {
+    public native get();
+    public native set(float val);
+  }
+  
+  // Retrieve/Set current health
+  property int iHealth
+  {
+    public get()
+    {
+      return GetEntProp(this.iClient, Prop_Send, "m_iHealth");
+    }
+    public set(int val)
+    {
+      SetEntProp(this.iClient, Prop_Send, "m_iHealth", val);
+    }
+  }
+  
+  // Retrieve/Set max health
+  property int iMaxHealth
+  {
+    public native get();
+    public native set(int val);
+  }
+  
+  // Retrieve/Set base health
+  property int iBaseHealth
+  {
+    public native get();
+    public native set(int val);
+  }
+  
+  // Retrieve/Set health per player
+  property int iHealthPerPlayer
+  {
+    public native get();
+    public native set(int val);
+  }
+  
+  // Retrieve/Set current damage gained for rage
+  property int iRageDamage
+  {
+    public native get();
+    public native set(int val);
+  }
+  
+  // Retrieve/Set damage required to reach 100% rage, -1 if no rage
+  property int iMaxRageDamage
+  {
+    public native get();
+    public native set(int val);
+  }
+  
+  // Retrieve/Set boss class
+  property TFClassType nClass
+  {
+    public native get();
+    public native set(TFClassType val);
+  }
 }
 
 /**
@@ -428,8 +428,8 @@ methodmap SaxtonHaleBase
  */
 enum SaxtonHaleHookMode
 {
- 	VSHHookMode_Pre,
- 	VSHHookMode_Post,
+   VSHHookMode_Pre,
+   VSHHookMode_Post,
 };
 
 /**
@@ -437,19 +437,19 @@ enum SaxtonHaleHookMode
  */
 typeset SaxtonHaleHookCallback
 {
-	// Callback when function is being called.
-	//
-	// @param boss          Client boss whose being called.
-	// @param result        Optional current value to return function as, can override if returned higher than Plugin_Continue.
-	//
-	// @return              Plugin_Continue if no actions with return and params
-	// @return              Plugin_Changed to override return and params. Note that if hook type is pre, functions may override values agian.
-	// @return              Plugin_Handled to override return and params, Call other functions, but prevent further override.
-	// @return              Plugin_Stop to override return and params even if current return is Plugin_Handled, prevent further functions and hooks called.
-	function void (SaxtonHaleBase boss);
-	function void (SaxtonHaleBase boss, any &result);
-	function Action (SaxtonHaleBase boss);
-	function Action (SaxtonHaleBase boss, any &result);
+  // Callback when function is being called.
+  //
+  // @param boss          Client boss whose being called.
+  // @param result        Optional current value to return function as, can override if returned higher than Plugin_Continue.
+  //
+  // @return              Plugin_Continue if no actions with return and params
+  // @return              Plugin_Changed to override return and params. Note that if hook type is pre, functions may override values agian.
+  // @return              Plugin_Handled to override return and params, Call other functions, but prevent further override.
+  // @return              Plugin_Stop to override return and params even if current return is Plugin_Handled, prevent further functions and hooks called.
+  function void (SaxtonHaleBase boss);
+  function void (SaxtonHaleBase boss, any &result);
+  function Action (SaxtonHaleBase boss);
+  function Action (SaxtonHaleBase boss, any &result);
 }
 
 /**
@@ -542,80 +542,80 @@ native void SaxtonHale_SetParamArray(int iParam, const any[] value);
  */
 methodmap SaxtonHaleNextBoss
 {
-	//Creates new SaxtonHaleNextBoss to set boss, modifier and special round for next match in the list
-	//
-	// @note If valid client index, client's existing next boss is passed. Otherwise if client index is 0, new Next Boss is made.
-	//
-	// @param iClient       Client to specify, or 0 for next client in queue
-	// @return              Next Boss Methodmap to get and set next boss
-	public native SaxtonHaleNextBoss(int iClient = 0);
-	
-	//Gets current boss type
-	//
-	// @param sBossType     String value to get, NULL_STRING if not specified yet
-	// @param iLength       Size of string
-	public native void GetBoss(char[] sBossType, int iLength);
-	
-	//Sets new boss type
-	//
-	// @param sBossType     String value to set, NULL_STRING for random boss
-	public native void SetBoss(const char[] sBossType);
-	
-	//Gets current boss multi type
-	//
-	// @param sMultiType    String value to get, NULL_STRING if not specified yet
-	// @param iLength       Size of string
-	public native void GetBossMulti(char[] sMultiType, int iLength);
-	
-	//Sets new boss multi type
-	//
-	// @param sMultiType    String value to set, NULL_STRING for random boss
-	public native void SetBossMulti(const char[] sMultiType);
-	
-	//Gets current modifier type
-	//
-	// @param sModifierType String value to get, empty string if none
-	// @param iLength       Size of string
-	// @return              True if modifier set, or as none. False otherwise
-	public native bool GetModifier(char[] sModifierType, int iLength);
-	
-	//Sets new modifier type
-	//
-	// @param sModifierType String value to set, empty string for none, NULL_STRING for random modifier
-	public native void SetModifier(const char[] sModifierType);
-	
-	//Gets name to display in chat with client, boss and modifier
-	//
-	// @param sBuffer       String value to get
-	// @param iLength       Size of string
-	public native void GetName(char[] sBuffer, int iLength);
-	
-	// Retrieve client index to play as this boss
-	property int iClient
-	{
-		public native get();
-	}
-	
-	// Retrieve/Set this boss to force play next round
-	property bool bForceNext
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve/Set this boss round to be a special class round
-	property bool bSpecialClassRound
-	{
-		public native get();
-		public native set(bool val);
-	}
-	
-	// Retrieve/Set this boss to play class if bSpecialClassRound is true, random class if TFClass_Unknown
-	property TFClassType nSpecialClassType
-	{
-		public native get();
-		public native set(TFClassType val);
-	}
+  //Creates new SaxtonHaleNextBoss to set boss, modifier and special round for next match in the list
+  //
+  // @note If valid client index, client's existing next boss is passed. Otherwise if client index is 0, new Next Boss is made.
+  //
+  // @param iClient       Client to specify, or 0 for next client in queue
+  // @return              Next Boss Methodmap to get and set next boss
+  public native SaxtonHaleNextBoss(int iClient = 0);
+  
+  //Gets current boss type
+  //
+  // @param sBossType     String value to get, NULL_STRING if not specified yet
+  // @param iLength       Size of string
+  public native void GetBoss(char[] sBossType, int iLength);
+  
+  //Sets new boss type
+  //
+  // @param sBossType     String value to set, NULL_STRING for random boss
+  public native void SetBoss(const char[] sBossType);
+  
+  //Gets current boss multi type
+  //
+  // @param sMultiType    String value to get, NULL_STRING if not specified yet
+  // @param iLength       Size of string
+  public native void GetBossMulti(char[] sMultiType, int iLength);
+  
+  //Sets new boss multi type
+  //
+  // @param sMultiType    String value to set, NULL_STRING for random boss
+  public native void SetBossMulti(const char[] sMultiType);
+  
+  //Gets current modifier type
+  //
+  // @param sModifierType String value to get, empty string if none
+  // @param iLength       Size of string
+  // @return              True if modifier set, or as none. False otherwise
+  public native bool GetModifier(char[] sModifierType, int iLength);
+  
+  //Sets new modifier type
+  //
+  // @param sModifierType String value to set, empty string for none, NULL_STRING for random modifier
+  public native void SetModifier(const char[] sModifierType);
+  
+  //Gets name to display in chat with client, boss and modifier
+  //
+  // @param sBuffer       String value to get
+  // @param iLength       Size of string
+  public native void GetName(char[] sBuffer, int iLength);
+  
+  // Retrieve client index to play as this boss
+  property int iClient
+  {
+    public native get();
+  }
+  
+  // Retrieve/Set this boss to force play next round
+  property bool bForceNext
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve/Set this boss round to be a special class round
+  property bool bSpecialClassRound
+  {
+    public native get();
+    public native set(bool val);
+  }
+  
+  // Retrieve/Set this boss to play class if bSpecialClassRound is true, random class if TFClass_Unknown
+  property TFClassType nSpecialClassType
+  {
+    public native get();
+    public native set(TFClassType val);
+  }
 }
 
 /**
@@ -730,11 +730,11 @@ native void SaxtonHale_SetPunishment(int iClient, bool bEnable);
 
 enum SaxtonHalePreferences
 {
-	VSHPreferences_PickAsBoss,
-	VSHPreferences_Rank,
-	VSHPreferences_MultiBoss,
-	VSHPreferences_Music,
-	VSHPreferences_Revival,
+  VSHPreferences_PickAsBoss,
+  VSHPreferences_Rank,
+  VSHPreferences_MultiBoss,
+  VSHPreferences_Music,
+  VSHPreferences_Revival,
 };
 
 /**
@@ -755,14 +755,14 @@ native bool SaxtonHale_HasPreferences(int iClient, SaxtonHalePreferences nPrefer
  */
 stock bool SaxtonHale_IsValidBoss(int iClient, bool bMinion = true)
 {
-	if (iClient <= 0 || iClient > MaxClients || !IsClientInGame(iClient))
-		return false;
-	
-	SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-	if (boss.bValid && (bMinion || !boss.bMinion))
-		return true;
-	
-	return false;
+  if (iClient <= 0 || iClient > MaxClients || !IsClientInGame(iClient))
+    return false;
+  
+  SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+  if (boss.bValid && (bMinion || !boss.bMinion))
+    return true;
+  
+  return false;
 }
 
 /**
@@ -775,10 +775,10 @@ stock bool SaxtonHale_IsValidBoss(int iClient, bool bMinion = true)
  */
 stock bool SaxtonHale_IsValidAttack(int iClient)
 {
-	return (0 < iClient <= MaxClients
-		&& IsClientInGame(iClient)
-		&& SaxtonHale_GetAttackTeam() == TF2_GetClientTeam(iClient)
-		&& !SaxtonHale_IsValidBoss(iClient));
+  return (0 < iClient <= MaxClients
+    && IsClientInGame(iClient)
+    && SaxtonHale_GetAttackTeam() == TF2_GetClientTeam(iClient)
+    && !SaxtonHale_IsValidBoss(iClient));
 }
 
 /**
@@ -790,12 +790,12 @@ stock bool SaxtonHale_IsValidAttack(int iClient)
  */
 stock int SaxtonHale_GetAliveAttackPlayers()
 {
-	int iAlive = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (SaxtonHale_IsValidAttack(iClient) && IsPlayerAlive(iClient))
-			iAlive++;
+  int iAlive = 0;
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+    if (SaxtonHale_IsValidAttack(iClient) && IsPlayerAlive(iClient))
+      iAlive++;
 
-	return iAlive;
+  return iAlive;
 }
 
 /**
@@ -806,7 +806,7 @@ stock int SaxtonHale_GetAliveAttackPlayers()
  */
 stock int SaxtonHale_GetScore(int iClient)
 {
-	return SaxtonHale_GetDamage(iClient) + RoundToFloor(float(SaxtonHale_GetAssistDamage(iClient)) / 2.0);
+  return SaxtonHale_GetDamage(iClient) + RoundToFloor(float(SaxtonHale_GetAssistDamage(iClient)) / 2.0);
 }
 
 /**
@@ -816,10 +816,10 @@ stock int SaxtonHale_GetScore(int iClient)
  */
 stock void SaxtonHale_PrepareSound(const char[] sSound)
 {
-	PrecacheSound(sSound, true);
-	char sBuffer[PLATFORM_MAX_PATH];
-	Format(sBuffer, sizeof(sBuffer), "sound/%s", sSound);
-	AddFileToDownloadsTable(sBuffer);
+  PrecacheSound(sSound, true);
+  char sBuffer[PLATFORM_MAX_PATH];
+  Format(sBuffer, sizeof(sBuffer), "sound/%s", sSound);
+  AddFileToDownloadsTable(sBuffer);
 }
 
 /**
@@ -830,21 +830,21 @@ stock void SaxtonHale_PrepareSound(const char[] sSound)
  */
 stock void SaxtonHale_PrepareMusic(const char[] sSound, bool bCustom = true)
 {
-	// Prefix the filepath with #, so it's considered as music by the engine, allowing people to adjust its volume through the music volume slider
-	char sBuffer[PLATFORM_MAX_PATH];
-	FormatEx(sBuffer, sizeof(sBuffer), "#%s", sSound);
-	PrecacheSound(sBuffer, true);
-	
-	if (!bCustom)
-		return;
-	
-	if (ReplaceString(sBuffer, sizeof(sBuffer), "#", "sound/") != 1)
-	{
-		LogError("PrepareMusic could not prepare %s: filepath must not have any '#' characters.", sSound);
-		return;
-	}
-	
-	AddFileToDownloadsTable(sBuffer);
+  // Prefix the filepath with #, so it's considered as music by the engine, allowing people to adjust its volume through the music volume slider
+  char sBuffer[PLATFORM_MAX_PATH];
+  FormatEx(sBuffer, sizeof(sBuffer), "#%s", sSound);
+  PrecacheSound(sBuffer, true);
+  
+  if (!bCustom)
+    return;
+  
+  if (ReplaceString(sBuffer, sizeof(sBuffer), "#", "sound/") != 1)
+  {
+    LogError("PrepareMusic could not prepare %s: filepath must not have any '#' characters.", sSound);
+    return;
+  }
+  
+  AddFileToDownloadsTable(sBuffer);
 }
 
 /**
@@ -853,114 +853,114 @@ stock void SaxtonHale_PrepareMusic(const char[] sSound, bool bCustom = true)
 
 public SharedPlugin __pl_saxtonhale =
 {
-	name = "saxtonhale",
-	file = "saxtonhale.smx",
+  name = "saxtonhale",
+  file = "saxtonhale.smx",
 #if defined REQUIRE_PLUGIN
-	required = 1,
+  required = 1,
 #else
-	required = 0,
+  required = 0,
 #endif
 };
 
 #if !defined REQUIRE_PLUGIN
 public __pl_saxtonhale_SetNTVOptional()
 {
-	MarkNativeAsOptional("SaxtonHaleFunction.SaxtonHaleFunction");
-	MarkNativeAsOptional("SaxtonHaleFunction.AddParam");
-	MarkNativeAsOptional("SaxtonHaleFunction.SetParam");
-	
-	MarkNativeAsOptional("SaxtonHale_RegisterClass");
-	MarkNativeAsOptional("SaxtonHale_UnregisterClass");
-	MarkNativeAsOptional("SaxtonHale_GetPlugin");
-	MarkNativeAsOptional("SaxtonHale_GetAllClass");
-	MarkNativeAsOptional("SaxtonHale_GetAllClassType");
-	MarkNativeAsOptional("SaxtonHale_CallFunction");
-	
-	MarkNativeAsOptional("SaxtonHaleBase.CreateClass");
-	MarkNativeAsOptional("SaxtonHaleBase.HasClass");
-	MarkNativeAsOptional("SaxtonHaleBase.DestroyClass");
-	MarkNativeAsOptional("SaxtonHaleBase.DestroyAllClass");
-	MarkNativeAsOptional("SaxtonHaleBase.CallFunction");
-	MarkNativeAsOptional("SaxtonHaleBase.GetPropInt");
-	MarkNativeAsOptional("SaxtonHaleBase.GetPropFloat");
-	MarkNativeAsOptional("SaxtonHaleBase.SetPropInt");
-	MarkNativeAsOptional("SaxtonHaleBase.SetPropFloat");
-	
-	MarkNativeAsOptional("SaxtonHaleBase.bValid.get");
-	MarkNativeAsOptional("SaxtonHaleBase.bValid.set");
-	MarkNativeAsOptional("SaxtonHaleBase.bModifiers.get");
-	MarkNativeAsOptional("SaxtonHaleBase.bModifiers.set");
-	MarkNativeAsOptional("SaxtonHaleBase.bMinion.get");
-	MarkNativeAsOptional("SaxtonHaleBase.bMinion.set");
-	MarkNativeAsOptional("SaxtonHaleBase.bSuperRage.get");
-	MarkNativeAsOptional("SaxtonHaleBase.bSuperRage.set");
-	MarkNativeAsOptional("SaxtonHaleBase.bModel.get");
-	MarkNativeAsOptional("SaxtonHaleBase.bModel.set");
-	MarkNativeAsOptional("SaxtonHaleBase.bHealthPerPlayerAlive.get");
-	MarkNativeAsOptional("SaxtonHaleBase.bHealthPerPlayerAlive.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flSpeed.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flSpeed.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flSpeedMult.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flSpeedMult.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flEnvDamageCap.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flEnvDamageCap.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flGlowTime.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flGlowTime.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flRageLastTime.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flRageLastTime.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flMaxRagePercentage.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flMaxRagePercentage.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flHealthExponential.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flHealthExponential.set");
-	MarkNativeAsOptional("SaxtonHaleBase.flHealthMultiplier.get");
-	MarkNativeAsOptional("SaxtonHaleBase.flHealthMultiplier.set");
-	MarkNativeAsOptional("SaxtonHaleBase.iMaxHealth.get");
-	MarkNativeAsOptional("SaxtonHaleBase.iMaxHealth.set");
-	MarkNativeAsOptional("SaxtonHaleBase.iBaseHealth.get");
-	MarkNativeAsOptional("SaxtonHaleBase.iBaseHealth.set");
-	MarkNativeAsOptional("SaxtonHaleBase.iHealthPerPlayer.get");
-	MarkNativeAsOptional("SaxtonHaleBase.iHealthPerPlayer.set");
-	MarkNativeAsOptional("SaxtonHaleBase.iRageDamage.get");
-	MarkNativeAsOptional("SaxtonHaleBase.iRageDamage.set");
-	MarkNativeAsOptional("SaxtonHaleBase.iMaxRageDamage.get");
-	MarkNativeAsOptional("SaxtonHaleBase.iMaxRageDamage.set");
-	MarkNativeAsOptional("SaxtonHaleBase.nClass.get");
-	MarkNativeAsOptional("SaxtonHaleBase.nClass.set");
-	
-	MarkNativeAsOptional("SaxtonHale_HookFunction");
-	MarkNativeAsOptional("SaxtonHale_UnhookFunction");
-	
-	MarkNativeAsOptional("SaxtonHale_GetParam");
-	MarkNativeAsOptional("SaxtonHale_SetParam");
-	MarkNativeAsOptional("SaxtonHale_GetParamStringLength");
-	MarkNativeAsOptional("SaxtonHale_GetParamString");
-	MarkNativeAsOptional("SaxtonHale_SetParamString");
-	MarkNativeAsOptional("SaxtonHale_GetParamArray");
-	MarkNativeAsOptional("SaxtonHale_SetParamArray");
-	
-	MarkNativeAsOptional("SaxtonHaleNextBoss.SaxtonHaleNextBoss");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.GetBoss");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.SetBoss");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.GetModifier");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.SetModifier");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.GetName");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.iClient.get");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.bForceNext.get");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.bForceNext.set");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.bSpecialClassRound.get");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.bSpecialClassRound.set");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.nSpecialClassType.get");
-	MarkNativeAsOptional("SaxtonHaleNextBoss.nSpecialClassType.set");
-	
-	MarkNativeAsOptional("SaxtonHale_GetBossTeam");
-	MarkNativeAsOptional("SaxtonHale_GetAttackTeam");
-	MarkNativeAsOptional("SaxtonHale_GetMainClass");
-	MarkNativeAsOptional("SaxtonHale_GetDamage");
-	MarkNativeAsOptional("SaxtonHale_GetAssistDamage");
-	MarkNativeAsOptional("SaxtonHale_SetPreferences");
-	MarkNativeAsOptional("SaxtonHale_SetQueue");
-	MarkNativeAsOptional("SaxtonHale_SetAdmin");
-	MarkNativeAsOptional("SaxtonHale_SetPunishment");
-	MarkNativeAsOptional("SaxtonHale_HasPreferences");
+  MarkNativeAsOptional("SaxtonHaleFunction.SaxtonHaleFunction");
+  MarkNativeAsOptional("SaxtonHaleFunction.AddParam");
+  MarkNativeAsOptional("SaxtonHaleFunction.SetParam");
+  
+  MarkNativeAsOptional("SaxtonHale_RegisterClass");
+  MarkNativeAsOptional("SaxtonHale_UnregisterClass");
+  MarkNativeAsOptional("SaxtonHale_GetPlugin");
+  MarkNativeAsOptional("SaxtonHale_GetAllClass");
+  MarkNativeAsOptional("SaxtonHale_GetAllClassType");
+  MarkNativeAsOptional("SaxtonHale_CallFunction");
+  
+  MarkNativeAsOptional("SaxtonHaleBase.CreateClass");
+  MarkNativeAsOptional("SaxtonHaleBase.HasClass");
+  MarkNativeAsOptional("SaxtonHaleBase.DestroyClass");
+  MarkNativeAsOptional("SaxtonHaleBase.DestroyAllClass");
+  MarkNativeAsOptional("SaxtonHaleBase.CallFunction");
+  MarkNativeAsOptional("SaxtonHaleBase.GetPropInt");
+  MarkNativeAsOptional("SaxtonHaleBase.GetPropFloat");
+  MarkNativeAsOptional("SaxtonHaleBase.SetPropInt");
+  MarkNativeAsOptional("SaxtonHaleBase.SetPropFloat");
+  
+  MarkNativeAsOptional("SaxtonHaleBase.bValid.get");
+  MarkNativeAsOptional("SaxtonHaleBase.bValid.set");
+  MarkNativeAsOptional("SaxtonHaleBase.bModifiers.get");
+  MarkNativeAsOptional("SaxtonHaleBase.bModifiers.set");
+  MarkNativeAsOptional("SaxtonHaleBase.bMinion.get");
+  MarkNativeAsOptional("SaxtonHaleBase.bMinion.set");
+  MarkNativeAsOptional("SaxtonHaleBase.bSuperRage.get");
+  MarkNativeAsOptional("SaxtonHaleBase.bSuperRage.set");
+  MarkNativeAsOptional("SaxtonHaleBase.bModel.get");
+  MarkNativeAsOptional("SaxtonHaleBase.bModel.set");
+  MarkNativeAsOptional("SaxtonHaleBase.bHealthPerPlayerAlive.get");
+  MarkNativeAsOptional("SaxtonHaleBase.bHealthPerPlayerAlive.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flSpeed.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flSpeed.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flSpeedMult.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flSpeedMult.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flEnvDamageCap.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flEnvDamageCap.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flGlowTime.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flGlowTime.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flRageLastTime.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flRageLastTime.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flMaxRagePercentage.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flMaxRagePercentage.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flHealthExponential.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flHealthExponential.set");
+  MarkNativeAsOptional("SaxtonHaleBase.flHealthMultiplier.get");
+  MarkNativeAsOptional("SaxtonHaleBase.flHealthMultiplier.set");
+  MarkNativeAsOptional("SaxtonHaleBase.iMaxHealth.get");
+  MarkNativeAsOptional("SaxtonHaleBase.iMaxHealth.set");
+  MarkNativeAsOptional("SaxtonHaleBase.iBaseHealth.get");
+  MarkNativeAsOptional("SaxtonHaleBase.iBaseHealth.set");
+  MarkNativeAsOptional("SaxtonHaleBase.iHealthPerPlayer.get");
+  MarkNativeAsOptional("SaxtonHaleBase.iHealthPerPlayer.set");
+  MarkNativeAsOptional("SaxtonHaleBase.iRageDamage.get");
+  MarkNativeAsOptional("SaxtonHaleBase.iRageDamage.set");
+  MarkNativeAsOptional("SaxtonHaleBase.iMaxRageDamage.get");
+  MarkNativeAsOptional("SaxtonHaleBase.iMaxRageDamage.set");
+  MarkNativeAsOptional("SaxtonHaleBase.nClass.get");
+  MarkNativeAsOptional("SaxtonHaleBase.nClass.set");
+  
+  MarkNativeAsOptional("SaxtonHale_HookFunction");
+  MarkNativeAsOptional("SaxtonHale_UnhookFunction");
+  
+  MarkNativeAsOptional("SaxtonHale_GetParam");
+  MarkNativeAsOptional("SaxtonHale_SetParam");
+  MarkNativeAsOptional("SaxtonHale_GetParamStringLength");
+  MarkNativeAsOptional("SaxtonHale_GetParamString");
+  MarkNativeAsOptional("SaxtonHale_SetParamString");
+  MarkNativeAsOptional("SaxtonHale_GetParamArray");
+  MarkNativeAsOptional("SaxtonHale_SetParamArray");
+  
+  MarkNativeAsOptional("SaxtonHaleNextBoss.SaxtonHaleNextBoss");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.GetBoss");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.SetBoss");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.GetModifier");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.SetModifier");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.GetName");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.iClient.get");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.bForceNext.get");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.bForceNext.set");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.bSpecialClassRound.get");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.bSpecialClassRound.set");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.nSpecialClassType.get");
+  MarkNativeAsOptional("SaxtonHaleNextBoss.nSpecialClassType.set");
+  
+  MarkNativeAsOptional("SaxtonHale_GetBossTeam");
+  MarkNativeAsOptional("SaxtonHale_GetAttackTeam");
+  MarkNativeAsOptional("SaxtonHale_GetMainClass");
+  MarkNativeAsOptional("SaxtonHale_GetDamage");
+  MarkNativeAsOptional("SaxtonHale_GetAssistDamage");
+  MarkNativeAsOptional("SaxtonHale_SetPreferences");
+  MarkNativeAsOptional("SaxtonHale_SetQueue");
+  MarkNativeAsOptional("SaxtonHale_SetAdmin");
+  MarkNativeAsOptional("SaxtonHale_SetPunishment");
+  MarkNativeAsOptional("SaxtonHale_HasPreferences");
 }
 #endif
