@@ -394,6 +394,7 @@ ConVar tf_movement_aircurrent_aircontrol_mult; // 1.0
 #include "vsh/bosses/boss_blutarch.sp"
 #include "vsh/bosses/boss_bonkboy.sp"
 #include "vsh/bosses/boss_brutalsniper.sp"
+#include "vsh/bosses/boss_bunny.sp"
 #include "vsh/bosses/boss_demopan.sp"
 #include "vsh/bosses/boss_demorobot.sp"
 #include "vsh/bosses/boss_gentlespy.sp"
@@ -675,6 +676,7 @@ public void OnPluginStart()
   SaxtonHale_RegisterClass("Blutarch", VSHClassType_Boss);
   SaxtonHale_RegisterClass("BonkBoy", VSHClassType_Boss);
   SaxtonHale_RegisterClass("BrutalSniper", VSHClassType_Boss);
+  SaxtonHale_RegisterClass("Bunny", VSHClassType_Boss);
   SaxtonHale_RegisterClass("DemoPan", VSHClassType_Boss);
   SaxtonHale_RegisterClass("DemoRobot", VSHClassType_Boss);
   SaxtonHale_RegisterClass("GentleSpy", VSHClassType_Boss);

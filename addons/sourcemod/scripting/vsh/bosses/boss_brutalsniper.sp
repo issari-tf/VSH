@@ -1,11 +1,11 @@
-#define BRUTALSNIPER_MODEL "models/player/saxton_hale/cbs_v4.mdl"
+#define BRUTALSNIPER_MODEL "models/player/new_saxton_hale/cbs/new_cbs_v3.mdl"//"models/player/saxton_hale/cbs_v4.mdl"
 #define BRUTALSNIPER_THEME "vsh_rewrite/brutalsniper/brutalsniper_music.mp3"
 #define BRUTALSNIPER_MAXWEAPONS 4
 
-#define ITEM_KUKRI			3
+#define ITEM_KUKRI			    3
 #define ITEM_TRIBALMAN_SHIV	171
-#define ITEM_BUSHWACKA		232
-#define ITEM_SHAHANSHAH		401
+#define ITEM_BUSHWACKA		  232
+#define ITEM_SHAHANSHAH		  401
 
 static int g_iBrutalSniperWeaponCooldown[MAXPLAYERS][BRUTALSNIPER_MAXWEAPONS];
 
@@ -340,12 +340,39 @@ public void BrutalSniper_GetMusicInfo(SaxtonHaleBase boss, char[] sSound, int le
   time = 132.0;
 }
 
+static const char CBSMatsV3[][] = {
+  "materials/models/player/new_saxton_hale/cbs_v3/eyeball_l.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/eyeball_r.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_blue_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_blue_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_exponent.vtf",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_normal.vtf",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_red_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_red_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_zombie.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin_zombie.vtf",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sfm_sniper_skin.vtf",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_blue_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head_blue_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head_blue_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head_red_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head_red_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head_zombie.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head_zombie.vtf",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_head.vtf",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper_red_invun.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper.vmt",
+  "materials/models/player/new_saxton_hale/cbs_v3/sniper.vtf"
+};
+
 public void BrutalSniper_Precache(SaxtonHaleBase boss)
 {
-  PrecacheModel(BRUTALSNIPER_MODEL);
+  PrepareModel(BRUTALSNIPER_MODEL);
+  DownloadMaterialList(CBSMatsV3, sizeof(CBSMatsV3));
   
-  PrepareMusic(BRUTALSNIPER_THEME);
-  
+  PrepareMusic(BRUTALSNIPER_THEME); 
   for (int i = 0; i < sizeof(g_strBrutalSniperRoundStart); i++) PrecacheSound(g_strBrutalSniperRoundStart[i]);
   for (int i = 0; i < sizeof(g_strBrutalSniperWin); i++) PrecacheSound(g_strBrutalSniperWin[i]);
   for (int i = 0; i < sizeof(g_strBrutalSniperLose); i++) PrecacheSound(g_strBrutalSniperLose[i]);
@@ -356,17 +383,4 @@ public void BrutalSniper_Precache(SaxtonHaleBase boss)
   for (int i = 0; i < sizeof(g_strBrutalSniperKillMelee); i++) PrecacheSound(g_strBrutalSniperKillMelee[i]);
   for (int i = 0; i < sizeof(g_strBrutalSniperLastMan); i++) PrecacheSound(g_strBrutalSniperLastMan[i]);
   for (int i = 0; i < sizeof(g_strBrutalSniperBackStabbed); i++) PrecacheSound(g_strBrutalSniperBackStabbed[i]);
-  
-  AddFileToDownloadsTable("materials/models/player/saxton_hale/sniper_head.vtf");
-  AddFileToDownloadsTable("materials/models/player/saxton_hale/sniper_head_red.vmt");
-  AddFileToDownloadsTable("materials/models/player/saxton_hale/sniper_lens.vmt");
-  AddFileToDownloadsTable("materials/models/player/saxton_hale/sniper_lens.vtf");
-  AddFileToDownloadsTable("materials/models/player/saxton_hale/sniper_red.vmt");
-  AddFileToDownloadsTable("materials/models/player/saxton_hale/sniper_red.vtf");
-  
-  AddFileToDownloadsTable("models/player/saxton_hale/cbs_v4.mdl");
-  AddFileToDownloadsTable("models/player/saxton_hale/cbs_v4.phy");
-  AddFileToDownloadsTable("models/player/saxton_hale/cbs_v4.vvd");
-  AddFileToDownloadsTable("models/player/saxton_hale/cbs_v4.dx80.vtx");
-  AddFileToDownloadsTable("models/player/saxton_hale/cbs_v4.dx90.vtx");
 }

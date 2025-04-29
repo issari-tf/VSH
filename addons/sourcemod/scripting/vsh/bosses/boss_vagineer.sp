@@ -1,4 +1,4 @@
-#define VAGINEER_MODEL		"models/player/saxton_hale/vagineer_v150.mdl"
+#define VAGINEER_MODEL      "models/player/new_saxton_hale/vagineer/new_vagineer_v3.mdl"//"models/player/saxton_hale/vagineer_v150.mdl"
 #define VAGINEER_KILL_SOUND "vsh_rewrite/vagineer/vagineer_kill.mp3"
 
 static char g_strVagineerRageMusic[][] = {
@@ -149,8 +149,47 @@ public Action Vagineer_OnSoundPlayed(SaxtonHaleBase boss, int clients[MAXPLAYERS
   return Plugin_Continue;
 }
 
+static const char VagineerMatsV3[][] = {
+  "materials/models/player/new_saxton_hale/vagineer_v3/all_decapitated.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_blue_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_blue_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_blue_zombie_invun.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_goggles.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_head_blue_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_head_blue_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_head_blue.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_head_red_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_head_red_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_head_red.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_head_zombie.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_red_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_red_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_red_zombie_invun.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_blu_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_blu_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_blue_zombie.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_blue_zombie.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_blue.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_blue.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_exponent.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_phongmask.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_red_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_red_zombie_invun.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_red_zombie.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_red_zombie.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_red.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/engineer_sfm_hands_red.vtf",
+  "materials/models/player/new_saxton_hale/vagineer_v3/vagineer_head_gib.vmt",
+  "materials/models/player/new_saxton_hale/vagineer_v3/vagineer_head_gib.vtf",
+};
+
 public void Vagineer_Precache(SaxtonHaleBase boss)
 {
+  PrepareModel(VAGINEER_MODEL);
+  PrepareModel("models/player/new_saxton_hale/vagineer/gibs/vagineergib006");
+  PrepareModel("models/player/new_saxton_hale/vagineer/gibs/vagineergib007");
+  DownloadMaterialList(VagineerMatsV3, sizeof(VagineerMatsV3));
+
   PrepareSound(VAGINEER_KILL_SOUND);
   for (int i = 0; i < sizeof(g_strVagineerRageMusic); i++) PrepareSound(g_strVagineerRageMusic[i]);
   for (int i = 0; i < sizeof(g_strVagineerRoundStart); i++) PrepareSound(g_strVagineerRoundStart[i]);
@@ -161,9 +200,9 @@ public void Vagineer_Precache(SaxtonHaleBase boss)
   for (int i = 0; i < sizeof(g_strVagineerLastMan); i++) PrepareSound(g_strVagineerLastMan[i]);
   for (int i = 0; i < sizeof(g_strVagineerBackStabbed); i++) PrepareSound(g_strVagineerBackStabbed[i]);
   
-  AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.mdl");
-  AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.phy");
-  AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.vvd");
-  AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.dx80.vtx");
-  AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.dx90.vtx");
+  //AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.mdl");
+  //AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.phy");
+  //AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.vvd");
+  //AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.dx80.vtx");
+  //AddFileToDownloadsTable("models/player/saxton_hale/vagineer_v150.dx90.vtx");
 }

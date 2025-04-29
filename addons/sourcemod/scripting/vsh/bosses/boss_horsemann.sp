@@ -1,4 +1,4 @@
-#define HORSEMANN_MODEL "models/player/saxton_hale/hhh_jr_mk3.mdl"
+#define HORSEMANN_MODEL "models/player/new_saxton_hale/hhh_jr/new_hhh_jr_v3.mdl"//"models/player/saxton_hale/hhh_jr_mk3.mdl"
 #define HORSEMANN_THEME "ui/holiday/gamestartup_halloween.mp3"
 
 static char g_strHorsemannRoundStart[][] = {
@@ -183,12 +183,20 @@ public void Horsemann_GetMusicInfo(SaxtonHaleBase boss, char[] sSound, int lengt
   time = 83.0;
 }
 
+/// Horseless Headless Horsemann Jr materials
+static const char HHHMatsV3[][] = {
+  "materials/models/player/new_saxton_hale/hhh_jr_v3/headless_hatman_blue_invun.vmt",
+  "materials/models/player/new_saxton_hale/hhh_jr_v3/headless_hatman_red_invun.vmt",
+  "materials/models/player/new_saxton_hale/hhh_jr_v3/hhh_pumpkin_blue_invun.vmt",
+  "materials/models/player/new_saxton_hale/hhh_jr_v3/hhh_pumpkin_red_invun.vmt",
+};
+
 public void Horsemann_Precache(SaxtonHaleBase boss)
 {
-  PrecacheModel(HORSEMANN_MODEL);
+  PrepareModel(HORSEMANN_MODEL);
+  DownloadMaterialList(HHHMatsV3, sizeof(HHHMatsV3));
   
   PrepareMusic(HORSEMANN_THEME, false);
-  
   for (int i = 0; i < sizeof(g_strHorsemannRoundStart); i++) PrecacheSound(g_strHorsemannRoundStart[i]);
   for (int i = 0; i < sizeof(g_strHorsemannWin); i++) PrecacheSound(g_strHorsemannWin[i]);
   for (int i = 0; i < sizeof(g_strHorsemannLose); i++) PrecacheSound(g_strHorsemannLose[i]);
@@ -199,11 +207,6 @@ public void Horsemann_Precache(SaxtonHaleBase boss)
   for (int i = 0; i < sizeof(g_strHorsemannTeleport); i++) PrecacheSound(g_strHorsemannTeleport[i]);
   for (int i = 0; i < sizeof(g_strHorsemannVoice); i++) PrecacheSound(g_strHorsemannVoice[i]);
   for (int i = 0; i < sizeof(g_strHorsemannFootsteps); i++) PrecacheSound(g_strHorsemannFootsteps[i]);
-  
-  AddFileToDownloadsTable("models/player/saxton_hale/hhh_jr_mk3.mdl");
-  AddFileToDownloadsTable("models/player/saxton_hale/hhh_jr_mk3.vvd");
-  AddFileToDownloadsTable("models/player/saxton_hale/hhh_jr_mk3.dx80.vtx");
-  AddFileToDownloadsTable("models/player/saxton_hale/hhh_jr_mk3.dx90.vtx");
 }
 
 public void Horsemann_CreateEyeGlow(SaxtonHaleBase boss)

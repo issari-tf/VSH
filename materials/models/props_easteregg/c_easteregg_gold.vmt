@@ -1,0 +1,27 @@
+"VertexlitGeneric"
+{
+	"$basetexture"			"models/props_easteregg/c_easteregg"
+	"$bumpmap"				"dev/flat_normal"
+
+	"$phong"				"1"
+	"$phongexponent"		"35"
+	"$phongboost" 			"5"	
+	"$lightwarptexture"		"models\lightwarps\weapon_lightwarp"
+	"$phongfresnelranges"	"[0.25 0.5 1]"
+
+	"$detail"				"effects/yellow"
+	"$envmap"				"cubemaps/cubemap_gold001"	
+	"$envmaptint"			"[5 5 5]"
+
+	"$rimlight"				"1"
+	"$rimlightexponent"		"2.5"
+	"$rimlightboost"		"2"
+
+	"$cloakPassEnabled" "1"
+	"Proxies"
+	{
+		"invis"
+		{
+		}
+	}
+}
