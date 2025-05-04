@@ -1,1 +1,1 @@
-Hello world this is a new READMe text data.
+Hello, world! This is the updated README.
