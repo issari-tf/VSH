@@ -214,7 +214,7 @@ public void Bunny_OnSpawn(SaxtonHaleBase boss)
   int iWeapon;
   char attribs[128];
 
-  Format(attribs, sizeof(attribs), "68 ; 2.0; 2 ; 3.0; 326 ; 1.3 ; 275 ; 1");
+  Format(attribs, sizeof(attribs), "68 ; 2.0 ; 2 ; 3.0 ; 326 ; 1.3 ; 275 ; 1");
   iWeapon = boss.CallFunction("CreateWeapon", 609, "tf_weapon_bottle", 100, TFQual_Collectors, attribs);
   if (iWeapon > MaxClients)
     SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);

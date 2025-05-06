@@ -1,18 +1,15 @@
-# VSH-Rewrite [![Action Status](https://github.com/redsunservers/VSH-Rewrite/workflows/Package/badge.svg)](https://github.com/redsunservers/VSH-Rewrite/actions?query=workflow%3APackage+branch%3Amaster)
+# VSH-Rewrite - Issari Fork 
 
-A complete rewrite for one of the largest custom gamemodes, Versus Saxton Hale. [Originaly made by Eggman, released public on 1st February 2011](https://forums.alliedmods.net/showthread.php?t=146884?t=146884)
-VSH-Rewrite started its development by [Kenzzer](https://github.com/Kenzzer) in alpha on November 4th 2017, then continued by [42](https://github.com/FortyTwoFortyTwo) from 18th October 2018. Plugin then released public on September 17th 2019.
+A Modern fork of the VSH-Rewrite project tailored for the Issari.TF community and fan base in the Philippines.
 
-## Features
-- +10 bosses all balanced with unique abilities, and can be expanded further from sub-plugins
-- +5 modifiers that changes boss's ability/effect upside and downside to change gameplay, and can be expanded further from sub-plugins
-- Config with +80 rebalanced TF2 weapons to keep VSH gamemode balanced for all class and weapons
-- Instead of team winning from control point, dome is spawned to damage opposing team. As time passes in gameplay, dome gets smaller to kill any stallers
-- Rank, increases and decreases on every boss win and death. The bigger the rank, the smaller the health pool, keeping skilled bosses a challenge to win with low health
+# About
+Versus Saxton Hale (VSH) is one of the most iconic and beloved custom game modes in Team Fortress 2. The original plugin was created by [Eggman and publicly released on February 1st, 2011](https://forums.alliedmods.net/showthread.php?t=146884?t=146884).
 
-## Builds
-All builds can be found [here](https://github.com/redsunservers/VSH-Rewrite/actions?query=workflow%3APackage+branch%3Amaster).
-To download latest build version, select latest package then "Artifacts" button at top right.
+This complete rewrite began on November 4th, 2017 by [Kenzzer](https://github.com/Kenzzer), and continued under active development by [42](https://github.com/FortyTwoFortyTwo) starting October 18th, 2018. The public release of the [VSH-Rewrite](https://github.com/redsunservers/VSH-Rewrite/tree/master) was made on September 17th, 2019.
+
+### About the Issari.TF Fork
+
+This fork is a community-focused version of VSH-Rewrite developed for Issari.TF and the growing TF2 fanbase in the Philippines, aiming to localize, improve, and maintain balance for a more tailored gameplay experience.
 
 ## Requirements
 - SourceMod 1.11
@@ -24,3 +21,12 @@ To download latest build version, select latest package then "Artifacts" button 
 - [Ozzy Furocity](https://steamcommunity.com/groups/OzFur) - Many inspiration with balances.
 - [Saxton Hale model team](https://steamcommunity.com/sharedfiles/filedetails/?id=1236765708) - Recreating Saxton Hale model with TF2 port.
 - [SediSocks](https://steamcommunity.com/sharedfiles/filedetails/?id=863061290) - Created Announcer model and allowing us to port for TF2.
+
+### List of Talented Programmers who inspire us:
+- [Kenzzer](https://github.com/Kenzzer) 
+  - Original VSH-Rewrite Developer.
+- [42](https://github.com/FortyTwoFortyTwo) 
+  - VSH-Rewrite developer
+  - "I like to learn techniques that I have not tried before" - 42.
+- [Mikusch](https://github.com/Mikusch) 
+  - Made incredible gamemodes.

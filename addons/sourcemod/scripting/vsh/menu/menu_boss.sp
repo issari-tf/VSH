@@ -60,6 +60,66 @@ void MenuBoss_Init()
 
 // --------------------
 
+void MenuBoss_DisplaySetBoss(int iClient, SaxtonHaleClassType nClassType, MenuBossListCallback callback, int iFlags = 0)
+{
+  Menu hMenuList = new Menu(MenuBoss_SelectBoss);
+  hMenuList.SetTitle("%s\n---", g_menuBossListInfo[nClassType].sTitle);
+  hMenuList.AddItem("__back__", "<- back");
+  
+  if (iFlags & MenuBossFlags_Random)
+    hMenuList.AddItem("__random__", "Random");
+  
+  if (iFlags & MenuBossFlags_None)
+    hMenuList.AddItem("__none__", "None");
+  
+  //Loop through every classes by type
+  ArrayList aClasses = SaxtonHale_GetAllClassType(nClassType);
+  aClasses.Sort(Sort_Ascending, Sort_String);
+  int iLength = aClasses.Length;
+  for (int i = 0; i < iLength; i++)
+  {
+    //Get boss type
+    char sBossType[MAX_TYPE_CHAR];
+    aClasses.GetString(i, sBossType, sizeof(sBossType));
+    
+    //If disallow hidden class, check that
+    if (!(iFlags & MenuBossFlags_Hidden) && SaxtonHale_CallFunction(sBossType, g_menuBossListInfo[nClassType].sIsHidden))
+      continue;
+    
+    //Get boss name
+    char sName[512];
+    SaxtonHale_CallFunction(sBossType, g_menuBossListInfo[nClassType].sGetName, sName, sizeof(sName));
+    if (!sName[0])
+      strcopy(sName, sizeof(sName), sBossType);
+    
+    //Add to menu
+    hMenuList.AddItem(sBossType, sName);
+  }
+  
+  delete aClasses;
+  g_nMenuBossClassType[iClient] = nClassType;
+  g_fMenuBossCallback[iClient] = callback;
+  hMenuList.Display(iClient, MENU_TIME_FOREVER);
+}
+
+public int MenuBoss_SelectBoss(Menu hMenu, MenuAction action, int iClient, int iSelect)
+{
+  if (action == MenuAction_End)
+  {
+    delete hMenu;
+  }
+  else if (action == MenuAction_Select)
+  {
+    char sSelect[MAX_TYPE_CHAR];
+    hMenu.GetItem(iSelect, sSelect, sizeof(sSelect));
+    SetClientCookie(iClient, g_SetBossCookie, sSelect);
+    PrintToChat(iClient, "%s You have selected: %s", TEXT_TAG, sSelect);
+  }
+  
+  return 0;
+}
+
+
 /*
  * Display list of classes
  */

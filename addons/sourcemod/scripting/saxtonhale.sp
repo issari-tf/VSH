@@ -217,6 +217,8 @@ enum
   NUM_OBSERVER_MODES,
 };
 
+Cookie g_SetBossCookie;
+
 char g_strPreferencesName[][] = {
   "Boss Selection",
   "",
@@ -511,6 +513,10 @@ public void OnPluginStart()
   tf_arena_preround_time = FindConVar("tf_arena_preround_time");
 
   AddNormalSoundHook(NormalSoundHook);
+
+  // Client Boss Preference Cookie
+  g_SetBossCookie = RegClientCookie("SetBoss", "Stores player's chosen boss name", CookieAccess_Private);
+
 
   //Allow client 0 (server/console) use admin commands
   Client_AddFlag(0, ClientFlags_Admin);

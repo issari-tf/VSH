@@ -1,4 +1,4 @@
-#define HALE_MODEL "models/vsh/player/saxton_hale.mdl"//"models/player/saxton_hale_jungle_inferno/saxton_hale_3.mdl"
+#define HALE_MODEL "models/player/saxton_hale_jungle_inferno/saxton_hale_3.mdl"
 
 static bool g_bHaleSpeedRage[MAXPLAYERS];
 
@@ -163,7 +163,7 @@ public void SaxtonHale_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length
 public void SaxtonHale_OnSpawn(SaxtonHaleBase boss)
 {
   char attribs[128];
-  Format(attribs, sizeof(attribs), "2 ; 2.31 ; 259 ; 1.0 ; 214 ; 812 ; 2.0 ; %d", GetRandomInt(9999, 99999));
+  Format(attribs, sizeof(attribs), "2 ; 2.80 ; 252 ; 0.5 ; 259 ; 1.0 ; 214 ; %d", GetRandomInt(9999, 99999));
   int iWeapon = boss.CallFunction("CreateWeapon", 195, "tf_weapon_shovel", 100, TFQual_Strange, attribs);
   if (iWeapon > MaxClients)
     SetEntPropEnt(boss.iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
@@ -299,70 +299,6 @@ public void SaxtonHale_Precache(SaxtonHaleBase boss)
   for (int i = 0; i < sizeof(g_strHaleLastMan); i++) PrepareSound(g_strHaleLastMan[i]);
   for (int i = 0; i < sizeof(g_strHaleBackStabbed); i++) PrepareSound(g_strHaleBackStabbed[i]);
   
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/shades/eyeball_l.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/shades/eyeball_r.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/shades/inv.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/shades/inv.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_belt_high_normal.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_belt_high.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_belt_high.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_body_exp.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_body_normal.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_body.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_body.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist_chargedash.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist_chargedash.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist_exp.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist_megapunch.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist_megapunch.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist_normal.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_fist.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_hat_color.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_hat_color.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_head_exponent.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_head_normal.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_head.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_head.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_ltarm_megapunch.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_ltarm_megapunch.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_ltarm.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_rtarm_chargedash.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_rtarm_chargedash.vtf");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_rtarm.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/saxton_shared.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/tongue.vmt");
-  AddFileToDownloadsTable("materials/models/vsh/player/saxton_hale/tongue.vtf");
-  
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_dash_effect.dx80.vtx");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_dash_effect.dx90.vtx");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_dash_effect.mdl");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_dash_effect.vvd");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_body_aura.mdl");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_body_aura.phy");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_ltarm_aura_megapunch.mdl");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_ltarm_aura_megapunch.phy");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_ltarm_aura.mdl");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_ltarm_aura.phy");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_rtarm_aura_chargedash.mdl");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_rtarm_aura_chargedash.phy");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_rtarm_aura.mdl");
-  AddFileToDownloadsTable("models/vsh/player/items/vsh_effect_rtarm_aura.phy");
-  AddFileToDownloadsTable("models/vsh/player/saxton_hale_animations.mdl");
-  AddFileToDownloadsTable("models/vsh/player/saxton_hale_user_animations.mdl");
-  AddFileToDownloadsTable("models/vsh/player/saxton_hale.dx80.vtx");
-  AddFileToDownloadsTable("models/vsh/player/saxton_hale.dx90.vtx");
-  AddFileToDownloadsTable("models/vsh/player/saxton_hale.mdl");
-  AddFileToDownloadsTable("models/vsh/player/saxton_hale.phy");
-  AddFileToDownloadsTable("models/vsh/player/saxton_hale.vvd");
-
-  AddFileToDownloadsTable("models/vsh/weapons/c_models/c_saxton_hale_animations.mdl");
-  AddFileToDownloadsTable("models/vsh/weapons/c_models/c_saxton_hale_arms.dx80.vtx");
-  AddFileToDownloadsTable("models/vsh/weapons/c_models/c_saxton_hale_arms.dx90.vtx");
-  AddFileToDownloadsTable("models/vsh/weapons/c_models/c_saxton_hale_arms.mdl");
-  AddFileToDownloadsTable("models/vsh/weapons/c_models/c_saxton_hale_arms.vvd");
-
-  /*
   AddFileToDownloadsTable("materials/models/player/hwm_saxton_hale/tongue_saxxy.vmt");
   AddFileToDownloadsTable("materials/models/player/hwm_saxton_hale/saxton_hat_saxxy.vmt");
   AddFileToDownloadsTable("materials/models/player/hwm_saxton_hale/saxton_hat_saxxy.vtf");
@@ -401,6 +337,5 @@ public void SaxtonHale_Precache(SaxtonHaleBase boss)
   AddFileToDownloadsTable("models/player/saxton_hale_jungle_inferno/saxton_hale_3.vvd");
   AddFileToDownloadsTable("models/player/saxton_hale_jungle_inferno/saxton_hale_3.dx80.vtx");
   AddFileToDownloadsTable("models/player/saxton_hale_jungle_inferno/saxton_hale_3.dx90.vtx");
-    */
 }
 
