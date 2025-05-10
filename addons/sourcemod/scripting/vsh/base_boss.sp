@@ -18,7 +18,7 @@ public void SaxtonHaleBoss_Create(SaxtonHaleBase boss)
 	boss.flHealthMultiplier = 1.0;
 	boss.bHealthPerPlayerAlive = false;
 	
-	boss.flSpeed = 370.0;
+	boss.flSpeed = 340.0;
 	boss.flSpeedMult = 0.07;
 	boss.flMaxRagePercentage = 2.0;
 	boss.iRageDamage = 0;
