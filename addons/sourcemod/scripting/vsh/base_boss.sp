@@ -299,52 +299,52 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
 	//	action = Plugin_Changed;
 	//}
 
-	if (inflictor > MaxClients && !boss.bMinion)
-	{
-		char sInflictor[32];
-		GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
-		if (strcmp(sInflictor, "tf_projectile_sentryrocket") == 0 || strcmp(sInflictor, "obj_sentrygun") == 0)
-		{
-			damagetype |= DMG_PREVENT_PHYSICS_FORCE;
-			action = Plugin_Changed;
-		}
-	}
+	// if (inflictor > MaxClients && !boss.bMinion)
+	// {
+	//	char sInflictor[32];
+	//	GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
+	//	if (strcmp(sInflictor, "tf_projectile_sentryrocket") == 0 || strcmp(sInflictor, "obj_sentrygun") == 0)
+	//	{
+	//		damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+	//		action = Plugin_Changed;
+	//	}
+	// }
 
-	if (MaxClients < attacker)
-	{
-		char strAttacker[32];
-		GetEdictClassname(attacker, strAttacker, sizeof(strAttacker));
-		if (strcmp(strAttacker, "trigger_hurt") == 0)
-		{
-			float flEnvDamage = damage;
-			if ((damagetype & DMG_ACID)) flEnvDamage *= 3.0;
+	// if (MaxClients < attacker)
+	// {
+	//	char strAttacker[32];
+	//	GetEdictClassname(attacker, strAttacker, sizeof(strAttacker));
+	//	if (strcmp(strAttacker, "trigger_hurt") == 0)
+	//	{
+	//		float flEnvDamage = damage;
+	//		if ((damagetype & DMG_ACID)) flEnvDamage *= 3.0;
 
-			if (flEnvDamage >= boss.flEnvDamageCap)
-			{
-				int iTeam = GetClientTeam(boss.iClient);
-				ArrayList aSpawnPoints = new ArrayList();
+	//		if (flEnvDamage >= boss.flEnvDamageCap)
+	//		{
+	//			int iTeam = GetClientTeam(boss.iClient);
+	//			ArrayList aSpawnPoints = new ArrayList();
 				
-				int iBossSpawn = INVALID_ENT_REFERENCE;
-				while ((iBossSpawn = FindEntityByClassname(iBossSpawn, "info_player_teamspawn")) != INVALID_ENT_REFERENCE)
-					if (GetEntProp(iBossSpawn, Prop_Send, "m_iTeamNum") == iTeam)
-						aSpawnPoints.Push(iBossSpawn);
+	//			int iBossSpawn = INVALID_ENT_REFERENCE;
+	//			while ((iBossSpawn = FindEntityByClassname(iBossSpawn, "info_player_teamspawn")) != INVALID_ENT_REFERENCE)
+	//				if (GetEntProp(iBossSpawn, Prop_Send, "m_iTeamNum") == iTeam)
+	//					aSpawnPoints.Push(iBossSpawn);
 				
-				if (aSpawnPoints.Length > 0)
-				{
-					aSpawnPoints.Sort(Sort_Random, Sort_Integer);
-					float vecPos[3];
-					GetEntPropVector(aSpawnPoints.Get(0), Prop_Data, "m_vecAbsOrigin", vecPos);
-					float vecNoVel[3];
-					TeleportEntity(boss.iClient, vecPos, NULL_VECTOR, vecNoVel);
-					TF2_StunPlayer(boss.iClient, 2.0, _, TF_STUNFLAGS_NORMALBONK, 0);
-				}
+	//			if (aSpawnPoints.Length > 0)
+	//			{
+	//				aSpawnPoints.Sort(Sort_Random, Sort_Integer);
+	//				float vecPos[3];
+	//				GetEntPropVector(aSpawnPoints.Get(0), Prop_Data, "m_vecAbsOrigin", vecPos);
+	//				float vecNoVel[3];
+	//				TeleportEntity(boss.iClient, vecPos, NULL_VECTOR, vecNoVel);
+	//				TF2_StunPlayer(boss.iClient, 2.0, _, TF_STUNFLAGS_NORMALBONK, 0);
+	//			}
 				
-				delete aSpawnPoints;
-				damage = (damagetype & DMG_ACID) ? boss.flEnvDamageCap/3.0 : boss.flEnvDamageCap;
-				action = Plugin_Changed;
-			}
-		}
-	}
+	//			delete aSpawnPoints;
+	//			damage = (damagetype & DMG_ACID) ? boss.flEnvDamageCap/3.0 : boss.flEnvDamageCap;
+	//			action = Plugin_Changed;
+	//		}
+	//	}
+	//}
 
 	return action;
 }
