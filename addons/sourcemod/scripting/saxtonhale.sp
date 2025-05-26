@@ -79,6 +79,16 @@ enum ClientFlags
   ClientFlags_Punishment = (1 << 1),
 };
 
+// TODO:
+// Verses: one boss vs everyone.
+// Boss Vs Boss: split teams into 2, everyone is boss.
+// Ultra: One Ultra boss vs bosses.
+enum GameTypes {
+  VERSES,
+  BOSSVSBOSS,
+  ULTRA,
+};
+
 enum
 {
   WeaponSlot_Primary = 0,
@@ -136,18 +146,6 @@ enum
   COLLISION_GROUP_NPC_SCRIPTED,	// USed for NPCs in scripts that should not collide with each other
 
   LAST_SHARED_COLLISION_GROUP
-};
-
-enum
-{
-	TF_COLLISIONGROUP_GRENADES = LAST_SHARED_COLLISION_GROUP,
-	TFCOLLISION_GROUP_OBJECT,
-	TFCOLLISION_GROUP_OBJECT_SOLIDTOPLAYERMOVEMENT,
-	TFCOLLISION_GROUP_COMBATOBJECT,
-	TFCOLLISION_GROUP_ROCKETS,		// Solid to players, but not player movement. ensures touch calls are originating from rocket
-	TFCOLLISION_GROUP_RESPAWNROOMS,
-	TFCOLLISION_GROUP_TANK,
-	TFCOLLISION_GROUP_ROCKET_BUT_NOT_WITH_OTHER_ROCKETS
 };
 
 // entity effects
@@ -321,19 +319,19 @@ TFClassType g_nClassDisplay[sizeof(g_strClassName)] = {
 
 enum struct NextBoss
 {
-  int iId;							//Id, must be at top of this struct
-  int iClient;						//Client to have those values, must be at 2nd top of this struct
-  char sBossType[MAX_TYPE_CHAR];		//Boss to play on next turn
-  char sBossMultiType[MAX_TYPE_CHAR];	//Boss multi to play on next turn
-  char sModifierType[MAX_TYPE_CHAR];	//Modifier to play on next turn
-  bool bModifierSet;					//Whenever if modifier has been set, forced no modifier also counts
-  bool bForceNext;					//This client will be boss next round
-  bool bSpecialClassRound;			//All-Class on next turn
-  TFClassType nSpecialClassType;		//If bSpecialClassRound, class to force, or TFClass_Unknown for random all-class
+  int iId;                            // Id, must be at top of this struct
+  int iClient;                        // Client to have those values, must be at 2nd top of this struct
+  char sBossType[MAX_TYPE_CHAR];		  // Boss to play on next turn
+  char sBossMultiType[MAX_TYPE_CHAR]; // Boss multi to play on next turn
+  char sModifierType[MAX_TYPE_CHAR];	// Modifier to play on next turn
+  bool bModifierSet;                  // Whenever if modifier has been set, forced no modifier also counts
+  bool bForceNext;                    // This client will be boss next round
+  bool bSpecialClassRound;            // All-Class on next turn
+  TFClassType nSpecialClassType;      // If bSpecialClassRound, class to force, or TFClass_Unknown for random all-class
 }
 
-ArrayList g_aNextBoss;	//Arrays of NextBoss struct
-int g_iNextBossId;		//Newest created id
+ArrayList g_aNextBoss;  // Arrays of NextBoss struct
+int g_iNextBossId;      // Newest created id
 
 bool g_bEnabled;
 bool g_bForceLoad; // Addition: enable PL_ maps.
@@ -349,7 +347,7 @@ int g_iHealthBarHealth;
 int g_iHealthBarMaxHealth;
 int g_iTelefragBuilder;
 
-//Player data
+// Player data
 int g_iPlayerLastButtons[MAXPLAYERS];
 int g_iPlayerDamage[MAXPLAYERS];
 int g_iPlayerAssistDamage[MAXPLAYERS];
@@ -359,11 +357,11 @@ int g_iPlayerAirshotCount[MAXPLAYERS]; // Track airshots per player
 
 int g_iClientFlags[MAXPLAYERS];
 
-//Game state data
+// Game state data
 int g_iTotalRoundPlayed;
 int g_iTotalAttackCount;
 
-//ConVars
+// ConVars
 ConVar sv_alltalk; // 1
 ConVar tf_arena_use_queue;
 ConVar mp_teams_unbalance_limit;
@@ -382,53 +380,6 @@ ConVar tf_arena_preround_time;
 ConVar tf_movement_aircurrent_aircontrol_mult; // 1.0
 
 #include "vsh/base_boss.sp"
-
-#include "vsh/abilities/ability_body_eat.sp"
-#include "vsh/abilities/ability_brave_jump.sp"
-#include "vsh/abilities/ability_dash_jump.sp"
-#include "vsh/abilities/ability_groundpound.sp"
-#include "vsh/abilities/ability_lunge.sp"
-#include "vsh/abilities/ability_rage_attributes.sp"
-#include "vsh/abilities/ability_rage_bomb.sp"
-#include "vsh/abilities/ability_rage_bomb_projectile.sp"
-#include "vsh/abilities/ability_rage_conditions.sp"
-#include "vsh/abilities/ability_rage_freeze.sp"
-#include "vsh/abilities/ability_rage_ghost.sp"
-#include "vsh/abilities/ability_rage_light.sp"
-#include "vsh/abilities/ability_rage_meteor.sp"
-#include "vsh/abilities/ability_rage_scare.sp"
-#include "vsh/abilities/ability_teleport_swap.sp"
-#include "vsh/abilities/ability_teleport_view.sp"
-#include "vsh/abilities/ability_wallclimb.sp"
-#include "vsh/abilities/ability_weapon_ball.sp"
-#include "vsh/abilities/ability_weapon_charge.sp"
-#include "vsh/abilities/ability_weapon_fists.sp"
-#include "vsh/abilities/ability_weapon_sentry.sp"
-#include "vsh/abilities/ability_weapon_spells.sp"
-
-#include "vsh/bosses/boss_announcer.sp"
-#include "vsh/bosses/boss_blutarch.sp"
-//#include "vsh/bosses/boss_bonkboy.sp"
-#include "vsh/bosses/boss_brutalsniper.sp"
-#include "vsh/bosses/boss_bunny.sp"
-#include "vsh/bosses/boss_demopan.sp"
-#include "vsh/bosses/boss_demorobot.sp"
-#include "vsh/bosses/boss_gentlespy.sp"
-#include "vsh/bosses/boss_graymann.sp"
-#include "vsh/bosses/boss_hale.sp"
-#include "vsh/bosses/boss_horsemann.sp"
-#include "vsh/bosses/boss_painiscupcakes.sp"
-#include "vsh/bosses/boss_redmond.sp"
-#include "vsh/bosses/boss_seeldier.sp"
-#include "vsh/bosses/boss_seeman.sp"
-#include "vsh/bosses/boss_uberranger.sp"
-#include "vsh/bosses/boss_vagineer.sp"
-#include "vsh/bosses/boss_yeti.sp"
-#include "vsh/bosses/boss_zombie.sp"
-#include "vsh/bosses/boss_merasmus.sp"
-
-#include "vsh/bossesmulti/bossmulti_mannbrothers.sp"
-#include "vsh/bossesmulti/bossmulti_seemanseeldier.sp"
 
 #include "vsh/modifiers/modifiers_angry.sp"
 #include "vsh/modifiers/modifiers_electric.sp"
@@ -482,11 +433,11 @@ ConVar tf_movement_aircurrent_aircontrol_mult; // 1.0
 
 public Plugin myinfo =
 {
-  name = "Versus Saxton Hale Rewrite",
-  author = "42, Kenzzer",
-  description = "Popular VSH Gamemode Rewritten from scrach",
-  version = PLUGIN_VERSION ... "." ... PLUGIN_VERSION_REVISION,
-  url = "https://github.com/redsunservers/VSH-Rewrite",
+  name              = "Versus Saxton Hale Rewrite",
+  author            = "42, Kenzzer",
+  description       = "Popular VSH Gamemode Rewritten from scrach",
+  version           = PLUGIN_VERSION ... "." ... PLUGIN_VERSION_REVISION,
+  url               = "https://github.com/redsunservers/VSH-Rewrite",
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -502,7 +453,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-  //OnLibraryAdded dont always call TF2Items on plugin start
+  // OnLibraryAdded dont always call TF2Items on plugin start
   g_bTF2Items = LibraryExists("TF2Items");
   
   AddMultiTargetFilter("@hale", BossTargetFilter, "all bosses", false);
@@ -510,22 +461,22 @@ public void OnPluginStart()
   AddMultiTargetFilter("@!hale", BossTargetFilter, "all non-bosses", false);
   AddMultiTargetFilter("@!boss", BossTargetFilter, "all non-bosses", false);
 
-  //Collect the convars
-  sv_alltalk = FindConVar("sv_alltalk");
-  tf_arena_use_queue = FindConVar("tf_arena_use_queue");
-  mp_teams_unbalance_limit = FindConVar("mp_teams_unbalance_limit");
-  tf_arena_first_blood = FindConVar("tf_arena_first_blood");
-  tf_dropped_weapon_lifetime = FindConVar("tf_dropped_weapon_lifetime");
-  mp_forcecamera = FindConVar("mp_forcecamera");
-  tf_scout_hype_pep_max = FindConVar("tf_scout_hype_pep_max");
-  tf_use_fixed_weaponspread = FindConVar("tf_use_fixed_weaponspread");
-  tf_damage_disablespread = FindConVar("tf_damage_disablespread");
+  // Collect the convars
+  sv_alltalk                           = FindConVar("sv_alltalk");
+  tf_arena_use_queue                   = FindConVar("tf_arena_use_queue");
+  mp_teams_unbalance_limit             = FindConVar("mp_teams_unbalance_limit");
+  tf_arena_first_blood                 = FindConVar("tf_arena_first_blood");
+  tf_dropped_weapon_lifetime           = FindConVar("tf_dropped_weapon_lifetime");
+  mp_forcecamera                       = FindConVar("mp_forcecamera");
+  tf_scout_hype_pep_max                = FindConVar("tf_scout_hype_pep_max");
+  tf_use_fixed_weaponspread            = FindConVar("tf_use_fixed_weaponspread");
+  tf_damage_disablespread              = FindConVar("tf_damage_disablespread");
   tf_feign_death_activate_damage_scale = FindConVar("tf_feign_death_activate_damage_scale");
-  tf_feign_death_damage_scale = FindConVar("tf_feign_death_damage_scale");
-  tf_stealth_damage_reduction = FindConVar("tf_stealth_damage_reduction");
-  tf_feign_death_duration = FindConVar("tf_feign_death_duration");
-  tf_feign_death_speed_duration = FindConVar("tf_feign_death_speed_duration");
-  tf_arena_preround_time = FindConVar("tf_arena_preround_time");
+  tf_feign_death_damage_scale          = FindConVar("tf_feign_death_damage_scale");
+  tf_stealth_damage_reduction          = FindConVar("tf_stealth_damage_reduction");
+  tf_feign_death_duration              = FindConVar("tf_feign_death_duration");
+  tf_feign_death_speed_duration        = FindConVar("tf_feign_death_speed_duration");
+  tf_arena_preround_time               = FindConVar("tf_arena_preround_time");
 
   AddNormalSoundHook(NormalSoundHook);
 
@@ -533,11 +484,11 @@ public void OnPluginStart()
   g_SetBossCookie = RegClientCookie("SetBoss", "Stores player's chosen boss name", CookieAccess_Private);
 
 
-  //Allow client 0 (server/console) use admin commands
+  // Allow client 0 (server/console) use admin commands
   Client_AddFlag(0, ClientFlags_Admin);
   
-  //Client 0 also used to call boss function and fetch data without needing active boss (precache, menus etc)
-  //Modifiers should always be enabled, so modifiers function can be called
+  // Client 0 also used to call boss function and fetch data without needing active boss (precache, menus etc)
+  // Modifiers should always be enabled, so modifiers function can be called
   SaxtonHaleBase boss = SaxtonHaleBase(0);
   boss.bModifiers = true;
   
@@ -547,7 +498,6 @@ public void OnPluginStart()
   Command_Init();
   Console_Init();
   Cookies_Init();
-  //Dome_Init();
   Event_Init();
   FuncClass_Init();
   FuncHook_Init();
@@ -563,7 +513,7 @@ public void OnPluginStart()
   
   SaxtonHaleFunction func;
   
-  //Boss functions
+  // Boss functions
   SaxtonHaleFunction("IsBossHidden", ET_Single);
   
   func = SaxtonHaleFunction("GetBossName", ET_Ignore, Param_String, Param_Cell);
@@ -572,7 +522,7 @@ public void OnPluginStart()
   func = SaxtonHaleFunction("GetBossInfo", ET_Ignore, Param_String, Param_Cell);
   func.SetParam(1, Param_String, VSHArrayType_Dynamic, 2);
   
-  //Multi Boss Functions
+  // Multi Boss Functions
   SaxtonHaleFunction("IsBossMultiHidden", ET_Single);
   SaxtonHaleFunction("GetBossMultiList", ET_Ignore, Param_Cell);
   
@@ -585,7 +535,7 @@ public void OnPluginStart()
   func = SaxtonHaleFunction("GetBossMultiInfo", ET_Ignore, Param_String, Param_Cell);
   func.SetParam(1, Param_String, VSHArrayType_Dynamic, 2);
   
-  //Modifiers functions
+  // Modifiers functions
   SaxtonHaleFunction("IsModifiersHidden", ET_Single);
   
   func = SaxtonHaleFunction("GetModifiersName", ET_Ignore, Param_String, Param_Cell);
@@ -594,7 +544,7 @@ public void OnPluginStart()
   func = SaxtonHaleFunction("GetModifiersInfo", ET_Ignore, Param_String, Param_Cell);
   func.SetParam(1, Param_String, VSHArrayType_Dynamic, 2);
   
-  //General functions
+  // General functions
   SaxtonHaleFunction("OnThink", ET_Ignore);
   SaxtonHaleFunction("OnSpawn", ET_Ignore);
   SaxtonHaleFunction("OnRage", ET_Ignore);
@@ -614,7 +564,7 @@ public void OnPluginStart()
   func.SetParam(3, Param_String, VSHArrayType_Static, PLATFORM_MAX_PATH);
   func.SetParam(9, Param_String, VSHArrayType_Static, PLATFORM_MAX_PATH);
   
-  //Damage/Death functions
+  // Damage/Death functions
   SaxtonHaleFunction("OnPlayerKilled", ET_Ignore, Param_Cell, Param_Cell);
   SaxtonHaleFunction("OnDeath", ET_Ignore, Param_Cell);
   
@@ -638,18 +588,18 @@ public void OnPluginStart()
   func.SetParam(6, Param_Array, VSHArrayType_Static, 3);
   func.SetParam(7, Param_Array, VSHArrayType_Static, 3);
   
-  //Button functions
+  // Button functions
   SaxtonHaleFunction("OnButton", ET_Ignore, Param_CellByRef);
   SaxtonHaleFunction("OnButtonPress", ET_Ignore, Param_Cell);
   SaxtonHaleFunction("OnButtonRelease", ET_Ignore, Param_Cell);
   
-  //Building functions
+  // Building functions
   SaxtonHaleFunction("OnBuild", ET_Single, Param_Cell, Param_Cell);
   SaxtonHaleFunction("OnBuildObject", ET_Event, Param_Cell);
   SaxtonHaleFunction("OnDestroyObject", ET_Event, Param_Cell);
   SaxtonHaleFunction("OnObjectSapped", ET_Event, Param_Cell);
   
-  //Retrieve array/strings
+  // Retrieve array/strings
   func = SaxtonHaleFunction("GetModel", ET_Ignore, Param_String, Param_Cell);
   func.SetParam(1, Param_String, VSHArrayType_Dynamic, 2);
   
@@ -680,76 +630,17 @@ public void OnPluginStart()
   func.SetParam(1, Param_String, VSHArrayType_Dynamic, 2);
   func.SetParam(3, Param_Array, VSHArrayType_Static, 4);
   
-  //Misc functions
+  // Misc functions
   SaxtonHaleFunction("Precache", ET_Ignore);
   SaxtonHaleFunction("CalculateMaxHealth", ET_Single);
   SaxtonHaleFunction("CanHealTarget", ET_Hook, Param_Cell, Param_CellByRef);
   SaxtonHaleFunction("AddRage", ET_Ignore, Param_Cell);
   SaxtonHaleFunction("CreateWeapon", ET_Single, Param_Cell, Param_String, Param_Cell, Param_Cell, Param_String);
   
-  //Register base constructor
+  // Register base constructor
   SaxtonHale_RegisterClass("SaxtonHaleBoss", VSHClassType_Core);
-  
-  //Register normal bosses
-  SaxtonHale_RegisterClass("SaxtonHale", VSHClassType_Boss);
-  
-  SaxtonHale_RegisterClass("Announcer", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Blutarch", VSHClassType_Boss);
-  //SaxtonHale_RegisterClass("BonkBoy", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("BrutalSniper", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Bunny", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("DemoPan", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("DemoRobot", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("GentleSpy", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("GrayMann", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Horsemann", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Merasmus", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("PainisCupcake", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Redmond", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Seeldier", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("SeeMan", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("UberRanger", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Vagineer", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Yeti", VSHClassType_Boss);
-  
-  //Register multi bosses
-  SaxtonHale_RegisterClass("MannBrothers", VSHClassType_BossMulti);
-  SaxtonHale_RegisterClass("SeeManSeeldier", VSHClassType_BossMulti);
-  
-  //Register minions
-  SaxtonHale_RegisterClass("SeeldierMinion", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("AnnouncerMinion", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("MinionRanger", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("GrayMannSoldierMinion", VSHClassType_Boss);
-	SaxtonHale_RegisterClass("GrayMannDemomanMinion", VSHClassType_Boss);
-	SaxtonHale_RegisterClass("GrayMannPyroMinion", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("Zombie", VSHClassType_Boss);
-  
-  //Register ability
-  SaxtonHale_RegisterClass("BodyEat", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("Bomb", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("BombProjectile", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("BraveJump", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("DashJump", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("GroundPound", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("Lunge", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("RageAttributes", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("RageAddCond", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("RageFreeze", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("RageGhost", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("LightRage", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("RageMeteor", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("ScareRage", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("TeleportSwap", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("TeleportView", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("WallClimb", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("WeaponBall", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("WeaponCharge", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("WeaponFists", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("WeaponSentry", VSHClassType_Ability);
-  SaxtonHale_RegisterClass("WeaponSpells", VSHClassType_Ability);
-  
-  //Register modifiers
+ 
+  // Register modifiers
   SaxtonHale_RegisterClass("ModifiersAngry", VSHClassType_Modifier);
   SaxtonHale_RegisterClass("ModifiersElectric", VSHClassType_Modifier);
   SaxtonHale_RegisterClass("ModifiersHot", VSHClassType_Modifier);
@@ -760,14 +651,14 @@ public void OnPluginStart()
   SaxtonHale_RegisterClass("ModifiersSpeed", VSHClassType_Modifier);
   SaxtonHale_RegisterClass("ModifiersVampire", VSHClassType_Modifier);
   
-  //Init our convars
+  // Init our convars
   g_ConfigConvar.Create("vsh_force_load", "-1", "Force enable VSH on map start? (-1 for default, 0 for force disable, 1 for force enable)", _, true, -1.0, true, 1.0);
   g_ConfigConvar.Create("vsh_boss_ping_limit", "200", "Max ping/latency to allow player to play as boss (-1 for no limit)", _, true, -1.0);
   g_ConfigConvar.Create("vsh_telefrag_damage", "9001.0", "Damage amount to boss from telefrag", _, true, 0.0);
   g_ConfigConvar.Create("vsh_music_enable", "1", "Enable boss music?", _, true, 0.0, true, 1.0);
   g_ConfigConvar.Create("vsh_rps_enable", "1", "Allow everyone use Rock Paper Scissors Taunt?", _, true, 0.0, true, 1.0);
 
-  //Incase of lateload, call client join functions
+  // Incase of lateload, call client join functions
   for (int iClient = 1; iClient <= MaxClients; iClient++)
   {
     if (IsClientConnected(iClient))
@@ -1097,10 +988,6 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
   {
     SDKHook(iEntity, SDKHook_StartTouchPost, Tags_OnProjectileTouch);
   }
-  else if (strncmp(sClassname, "tf_weapon", 9) == 0)
-	{
-		SDK_FVisible(iEntity);
-	}
   else if (strncmp(sClassname, "item_healthkit_", 15) == 0
     || strncmp(sClassname, "item_ammopack_", 14) == 0
     || strcmp(sClassname, "tf_ammo_pack") == 0
@@ -1789,7 +1676,11 @@ void Client_OnButtonRelease(int iClient, int button)
     boss.CallFunction("OnButtonRelease", button);
 }
 
-// TODO: move these into a file.
+
+
+
+
+
 // UPD: 12.11.2015
 // SPELLS DEFINES
 #define FIREBALL    0   // Done
@@ -1805,61 +1696,61 @@ void Client_OnButtonRelease(int iClient, int button)
 
 stock int ShootProjectile(int client, int spell)
 {
-	float vAngles[3]; // original
-	float vPosition[3]; // original
-	GetClientEyeAngles(client, vAngles);
-	GetClientEyePosition(client, vPosition);
-	char strEntname[45] = "";
-	switch(spell)
-	{
-		case FIREBALL: 		strEntname = "tf_projectile_spellfireball";
-		case LIGHTNING: 	strEntname = "tf_projectile_lightningorb";
-		case PUMPKIN: 		strEntname = "tf_projectile_spellmirv";
-		case PUMPKIN2: 		strEntname = "tf_projectile_spellpumpkin";
-		case BATS: 			strEntname = "tf_projectile_spellbats";
-		case METEOR: 		strEntname = "tf_projectile_spellmeteorshower";
-		case TELE: 			strEntname = "tf_projectile_spelltransposeteleport";
-		case BOSS:			strEntname = "tf_projectile_spellspawnboss";
-		case ZOMBIEH:		strEntname = "tf_projectile_spellspawnhorde";
-		case ZOMBIE:		strEntname = "tf_projectile_spellspawnzombie";
-	}
-	int iTeam = GetClientTeam(client);
-	int iSpell = CreateEntityByName(strEntname);
-	
-	if(!IsValidEntity(iSpell))
-		return -1;
-	
-	float vVelocity[3];
-	float vBuffer[3];
-	
-	GetAngleVectors(vAngles, vBuffer, NULL_VECTOR, NULL_VECTOR);
-	vVelocity[0] = vBuffer[0]*1100.0; //Speed of a tf2 rocket.
-	vVelocity[1] = vBuffer[1]*1100.0;
-	vVelocity[2] = vBuffer[2]*1100.0;
-	SetEntPropEnt(iSpell, Prop_Send, "m_hOwnerEntity", client);
-	SetEntProp(iSpell,    Prop_Send, "m_bCritical", (GetRandomInt(0, 100) <= 5)? 1 : 0, 1);
-	SetEntProp(iSpell,    Prop_Send, "m_iTeamNum",     iTeam, 1);
-	SetEntProp(iSpell,    Prop_Send, "m_nSkin", (iTeam-2));
+  float vAngles[3]; // original
+  float vPosition[3]; // original
+  GetClientEyeAngles(client, vAngles);
+  GetClientEyePosition(client, vPosition);
+  char strEntname[45] = "";
+  switch(spell)
+  {
+    case FIREBALL: 		strEntname = "tf_projectile_spellfireball";
+    case LIGHTNING: 	strEntname = "tf_projectile_lightningorb";
+    case PUMPKIN: 		strEntname = "tf_projectile_spellmirv";
+    case PUMPKIN2: 		strEntname = "tf_projectile_spellpumpkin";
+    case BATS: 			strEntname = "tf_projectile_spellbats";
+    case METEOR: 		strEntname = "tf_projectile_spellmeteorshower";
+    case TELE: 			strEntname = "tf_projectile_spelltransposeteleport";
+    case BOSS:			strEntname = "tf_projectile_spellspawnboss";
+    case ZOMBIEH:		strEntname = "tf_projectile_spellspawnhorde";
+    case ZOMBIE:		strEntname = "tf_projectile_spellspawnzombie";
+  }
+  int iTeam = GetClientTeam(client);
+  int iSpell = CreateEntityByName(strEntname);
+  
+  if(!IsValidEntity(iSpell))
+    return -1;
+  
+  float vVelocity[3];
+  float vBuffer[3];
+  
+  GetAngleVectors(vAngles, vBuffer, NULL_VECTOR, NULL_VECTOR);
+  vVelocity[0] = vBuffer[0]*1100.0; //Speed of a tf2 rocket.
+  vVelocity[1] = vBuffer[1]*1100.0;
+  vVelocity[2] = vBuffer[2]*1100.0;
+  SetEntPropEnt(iSpell, Prop_Send, "m_hOwnerEntity", client);
+  SetEntProp(iSpell,    Prop_Send, "m_bCritical", (GetRandomInt(0, 100) <= 5)? 1 : 0, 1);
+  SetEntProp(iSpell,    Prop_Send, "m_iTeamNum",     iTeam, 1);
+  SetEntProp(iSpell,    Prop_Send, "m_nSkin", (iTeam-2));
 
-	TeleportEntity(iSpell, vPosition, vAngles, NULL_VECTOR);
+  TeleportEntity(iSpell, vPosition, vAngles, NULL_VECTOR);
 
-	SetVariantInt(iTeam);
-	AcceptEntityInput(iSpell, "TeamNum", -1, -1, 0);
-	SetVariantInt(iTeam);
-	AcceptEntityInput(iSpell, "SetTeam", -1, -1, 0); 
-	DispatchSpawn(iSpell);
-	TeleportEntity(iSpell, NULL_VECTOR, NULL_VECTOR, vVelocity);
+  SetVariantInt(iTeam);
+  AcceptEntityInput(iSpell, "TeamNum", -1, -1, 0);
+  SetVariantInt(iTeam);
+  AcceptEntityInput(iSpell, "SetTeam", -1, -1, 0); 
+  DispatchSpawn(iSpell);
+  TeleportEntity(iSpell, NULL_VECTOR, NULL_VECTOR, vVelocity);
 
-	return iSpell;
+  return iSpell;
 }
 
 stock int GetActiveWep(const int client) {
-	int weapon = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
-	return( IsValidEntity(weapon) ) ? weapon : -1;
+  int weapon = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+  return( IsValidEntity(weapon) ) ? weapon : -1;
 }
 
 stock bool IsWeaponSlotActive(const int client, const int slot) {
-	return GetPlayerWeaponSlot(client, slot) == GetActiveWep(client);
+  return GetPlayerWeaponSlot(client, slot) == GetActiveWep(client);
 }
 
 public Action TF2_CalcIsAttackCritical(int iClient, int iWeapon, char[] sWepClassName, bool &bResult)
@@ -1878,13 +1769,13 @@ public Action TF2_CalcIsAttackCritical(int iClient, int iWeapon, char[] sWepClas
     int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 
     
-	  /// Sun on a Stick - fireball
-	  if( iIndex == 349 ) {
-		if( TF2_GetPlayerClass(iClient)==TFClass_Scout 
-			&& IsWeaponSlotActive(iClient, TFWeaponSlot_Melee) ) {
-			ShootProjectile(iClient, FIREBALL);
-		}
-	}
+    /// Sun on a Stick - fireball
+    if( iIndex == 349 ) {
+    if( TF2_GetPlayerClass(iClient)==TFClass_Scout 
+      && IsWeaponSlotActive(iClient, TFWeaponSlot_Melee) ) {
+      ShootProjectile(iClient, FIREBALL);
+    }
+  }
 
     if (WeaponSlot_Primary <= iSlot <= WeaponSlot_BuilderEngie)
     {
@@ -2032,6 +1923,6 @@ void Frame_KillLight(int iRef)
 // Allow Boss to take teleporters - Taken from AnyTeleporter
 public Action TF2_OnPlayerTeleport(int iClient, int iTeleporter, bool& result) 
 {
-	result = true;
-	return Plugin_Changed;
+  result = true;
+  return Plugin_Changed;
 }
