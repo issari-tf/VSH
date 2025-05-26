@@ -841,6 +841,49 @@ stock void TF2_TeleportToClient(int iClient, int iTarget)
   }
 }
 
+stock int AttachParticle(const int ent, const char[] particleType, float offset = 0.0, bool battach = true) {
+	int particle = CreateEntityByName("info_particle_system");
+	char tName[32];
+	float pos[3]; GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
+	pos[2] += offset;
+	TeleportEntity(particle, pos, NULL_VECTOR, NULL_VECTOR);
+	Format(tName, sizeof(tName), "target%i", ent);
+	DispatchKeyValue(ent, "targetname", tName);
+	DispatchKeyValue(particle, "targetname", "tf2particle");
+	DispatchKeyValue(particle, "parentname", tName);
+	DispatchKeyValue(particle, "effect_name", particleType);
+	DispatchSpawn(particle);
+	SetVariantString(tName);
+	if( battach ) {
+		AcceptEntityInput(particle, "SetParent", particle, particle, 0);
+		SetEntPropEnt(particle, Prop_Send, "m_hOwnerEntity", ent);
+	}
+	ActivateEntity(particle);
+	AcceptEntityInput(particle, "start");
+	CreateTimer(3.0, Timer_EntityCleanup, EntIndexToEntRef(particle));
+	return particle;
+}
+
+
+public Action TF2_SpawnVortexEntrance_Delayed(Handle timer, Handle pack)
+{
+    ResetPack(pack);
+    float vecOrigin[3];
+    vecOrigin[0] = ReadPackFloat(pack);
+    vecOrigin[1] = ReadPackFloat(pack);
+    vecOrigin[2] = ReadPackFloat(pack);
+    CloseHandle(pack); // Cleanup
+
+    int portal = CreateEntityByName("teleport_vortex");
+    DispatchSpawn(portal);
+    CreateTimer(6.0, Timer_EntityCleanup, EntIndexToEntRef(portal), TIMER_FLAG_NO_MAPCHANGE);
+    CreateTimer(6.0, Timer_EntityCleanup, EntIndexToEntRef(AttachParticle(portal, "eyeboss_tp_vortex", 50.0, false)));
+    TeleportEntity(portal, vecOrigin, NULL_VECTOR, NULL_VECTOR);
+
+    return Plugin_Handled;
+}
+
+
 stock void TF2_TeleportSwap(int iClient[2])
 {
   float vecOrigin[2][3];
@@ -849,22 +892,22 @@ stock void TF2_TeleportSwap(int iClient[2])
   
   for (int i = 0; i <= 1; i++)
   {
-    //Remove Sniper scope before teleporting, otherwise huge server hang can happen
+    // Remove Sniper scope before teleporting, otherwise huge server hang can happen
     if (TF2_IsPlayerInCondition(iClient[i], TFCond_Zoomed)) TF2_RemoveCondition(iClient[i], TFCond_Zoomed);
     if (TF2_IsPlayerInCondition(iClient[i], TFCond_Slowed)) TF2_RemoveCondition(iClient[i], TFCond_Slowed);
     
-    //Get its origin, angles and vel
+    // Get its origin, angles and vel
     GetClientAbsOrigin(iClient[i], vecOrigin[i]);
     GetClientAbsAngles(iClient[i], vecAngles[i]);
     GetEntPropVector(iClient[i], Prop_Data, "m_vecVelocity", vecVel[i]);
     
-    //Create particle
+    // Create particle
     CreateTimer(3.0, Timer_EntityCleanup, TF2_SpawnParticle(PARTICLE_GHOST, vecOrigin[i], vecAngles[i]));
     
-    //Play a sound
+    // Play a sound
     EmitGameSoundToAll("Halloween.spell_teleport", iClient[i]);
   }
-  
+
   for (int i = 0; i <= 1; i++)
   {
     int j = ((i == 1) ? 0 : 1);
@@ -877,7 +920,7 @@ stock void TF2_TeleportSwap(int iClient[2])
       SetEntProp(iClient[j], Prop_Send, "m_bDucked", true);
       SetEntityFlags(iClient[j], GetEntityFlags(iClient[j])|FL_DUCKING);
     }
-  }
+  }  
 }
 
 stock int TF2_CreateLightEntity(float flRadius, int iColor[4], int iBrightness)
@@ -1121,6 +1164,25 @@ stock void ConstrainDistance(const float vecStart[3], float vecEnd[3], float flD
   vecEnd[1] = ((vecEnd[1] - vecStart[1]) * flFactor) + vecStart[1];
   vecEnd[2] = ((vecEnd[2] - vecStart[2]) * flFactor) + vecStart[2];
 }
+
+stock void SetEntityModelScale(int iEntity, float flScale, int iActivator = -1, int iCaller = -1)
+{
+	// SetModelScale errors out when using a float instead of a string, so it looks odd
+	char sScale[16];
+	FloatToString(flScale, sScale, sizeof(sScale));
+	
+	SetVariantString(sScale);
+	AcceptEntityInput(iEntity, "SetModelScale", iActivator, iCaller);
+}
+
+stock void DelayNextWeaponAttack(int iWeapon, float flDelay)
+{
+	float flNextAttack = GetGameTime() + flDelay;
+	SetEntPropFloat(iWeapon, Prop_Send, "m_flNextPrimaryAttack", flNextAttack);
+	SetEntPropFloat(iWeapon, Prop_Send, "m_flNextSecondaryAttack", flNextAttack);
+}
+
+
 
 // Helper functions.
 stock bool CheckDownload(const char[] file)

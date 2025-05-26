@@ -281,8 +281,6 @@ void NextBoss_SetBoss(SaxtonHaleNextBoss nextBoss, ArrayList aNonBosses)
   nextBoss.GetBossMulti(sBossMultiType, sizeof(sBossMultiType));
   bool bModifierSet = nextBoss.GetModifier(sModifierType, sizeof(sModifierType));
   
-  
-
   if (StrEmpty(sBossType))
     NextBoss_GetRandomNormal(sBossType, sizeof(sBossType));
   
@@ -300,14 +298,19 @@ void NextBoss_SetBoss(SaxtonHaleNextBoss nextBoss, ArrayList aNonBosses)
   // If client has a boss preference and is not a multiboss
   char sCookieBuffer[64];
   GetClientCookie(boss.iClient, g_SetBossCookie, sCookieBuffer, sizeof(sCookieBuffer));
-  if (sCookieBuffer[0] != '\0' & !sBossMultiType[0]) {
+  if (sCookieBuffer[0] != '\0') 
+  {
     Format(sBossType, sizeof(sBossType), sCookieBuffer);
   }
+
   
   boss.CreateClass(sBossType);
-  if (sBossMultiType[0])
+  if (sBossMultiType[0]) 
+  {
     boss.CreateClass(sBossMultiType);
-  
+  } 
+
+
   //Select Modifiers
   if (!StrEmpty(sModifierType))
     boss.CreateClass(sModifierType);

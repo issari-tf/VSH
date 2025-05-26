@@ -551,7 +551,6 @@ public void Tags_OnBackstab(int iClient, int iTarget, TagsParams tParams)
   EmitSoundToClient(iTarget, SOUND_BACKSTAB);
   PrintCenterText(iClient, "You backstabbed the boss!");
   PrintCenterText(iTarget, "You were backstabbed!");
-  PrintToChatAll("%s[VSH] %s%N %sjust %sBACKSTABBED %s%N %sfor 1000 dmg", COLOR_OLIVE, COLOR_RED, iClient, COLOR_DEFAULT, COLOR_YELLOW, COLOR_BLUE, iTarget, COLOR_DEFAULT);  
   
   // Play boss backstab sound
   char sSound[255];

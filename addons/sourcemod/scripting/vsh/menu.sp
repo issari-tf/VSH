@@ -79,7 +79,7 @@ public int Menu_SelectMain(Menu hMenu, MenuAction action, int iClient, int iSele
   else if (StrEqual(sSelect, "boss"))
     MenuBoss_DisplayList(iClient, VSHClassType_Boss, MenuBoss_CallbackInfo);
    else if (StrEqual(sSelect, "setboss"))
-    MenuBoss_DisplaySetBoss (iClient, VSHClassType_Boss, MenuBoss_CallbackInfo);
+    MenuBoss_DisplaySetBoss(iClient, VSHClassType_Boss, MenuBoss_CallbackInfo, MenuBossFlags_None | MenuBossFlags_Random);
   else if (StrEqual(sSelect, "bossmulti"))
     MenuBoss_DisplayList(iClient, VSHClassType_BossMulti, MenuBoss_CallbackInfo);
   else if (StrEqual(sSelect, "modifiers"))

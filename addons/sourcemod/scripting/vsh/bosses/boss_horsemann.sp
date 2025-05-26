@@ -124,6 +124,7 @@ public void Horsemann_OnSpawn(SaxtonHaleBase boss)
   Horsemann_CreateEyeGlow(boss);
 }
 
+
 public void Horsemann_GetModel(SaxtonHaleBase boss, char[] sModel, int length)
 {
   strcopy(sModel, length, HORSEMANN_MODEL);

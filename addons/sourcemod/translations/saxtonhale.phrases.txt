@@ -1,0 +1,69 @@
+"Phrases"
+{
+  "OnBackstab"
+  {
+
+  }
+
+  "OnAirShot"
+  {
+
+  }
+
+  // ClassLimit
+  "ClassLimitTooSmall"
+  {
+
+  }
+
+  "ClassLimitFull"
+  {
+
+  }
+
+  // Commands
+  "CmdNotInGame"
+  {
+
+  }
+
+  "CmdNoPerms"
+  {
+
+  }
+
+  "CmdFailedFindClass"
+  {
+
+  }
+
+  "CmdFailedConvertInt"
+  {
+
+  }
+
+  "CmdPrefsLoading"
+  {
+
+  }
+
+  "CmdInvalidPrefs"
+  {
+
+  }
+
+  "CmdRefreshedConfig"
+  {
+
+  }
+
+  "CmdSpecialRound"
+  {
+
+  }
+
+  "CmdSetBossRage"
+  {
+
+  }
+}

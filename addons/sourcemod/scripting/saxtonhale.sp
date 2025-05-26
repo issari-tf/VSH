@@ -138,6 +138,18 @@ enum
   LAST_SHARED_COLLISION_GROUP
 };
 
+enum
+{
+	TF_COLLISIONGROUP_GRENADES = LAST_SHARED_COLLISION_GROUP,
+	TFCOLLISION_GROUP_OBJECT,
+	TFCOLLISION_GROUP_OBJECT_SOLIDTOPLAYERMOVEMENT,
+	TFCOLLISION_GROUP_COMBATOBJECT,
+	TFCOLLISION_GROUP_ROCKETS,		// Solid to players, but not player movement. ensures touch calls are originating from rocket
+	TFCOLLISION_GROUP_RESPAWNROOMS,
+	TFCOLLISION_GROUP_TANK,
+	TFCOLLISION_GROUP_ROCKET_BUT_NOT_WITH_OTHER_ROCKETS
+};
+
 // entity effects
 enum
 {
@@ -324,6 +336,7 @@ ArrayList g_aNextBoss;	//Arrays of NextBoss struct
 int g_iNextBossId;		//Newest created id
 
 bool g_bEnabled;
+bool g_bForceLoad; // Addition: enable PL_ maps.
 bool g_bRoundStarted;
 bool g_bTF2Items;
 
@@ -342,6 +355,7 @@ int g_iPlayerDamage[MAXPLAYERS];
 int g_iPlayerAssistDamage[MAXPLAYERS];
 int g_iClientOwner[MAXPLAYERS];
 bool g_bClientAreaOfEffect[MAXPLAYERS][MAXPLAYERS];
+int g_iPlayerAirshotCount[MAXPLAYERS]; // Track airshots per player
 
 int g_iClientFlags[MAXPLAYERS];
 
@@ -394,12 +408,13 @@ ConVar tf_movement_aircurrent_aircontrol_mult; // 1.0
 
 #include "vsh/bosses/boss_announcer.sp"
 #include "vsh/bosses/boss_blutarch.sp"
-#include "vsh/bosses/boss_bonkboy.sp"
+//#include "vsh/bosses/boss_bonkboy.sp"
 #include "vsh/bosses/boss_brutalsniper.sp"
 #include "vsh/bosses/boss_bunny.sp"
 #include "vsh/bosses/boss_demopan.sp"
 #include "vsh/bosses/boss_demorobot.sp"
 #include "vsh/bosses/boss_gentlespy.sp"
+#include "vsh/bosses/boss_graymann.sp"
 #include "vsh/bosses/boss_hale.sp"
 #include "vsh/bosses/boss_horsemann.sp"
 #include "vsh/bosses/boss_painiscupcakes.sp"
@@ -680,12 +695,13 @@ public void OnPluginStart()
   
   SaxtonHale_RegisterClass("Announcer", VSHClassType_Boss);
   SaxtonHale_RegisterClass("Blutarch", VSHClassType_Boss);
-  SaxtonHale_RegisterClass("BonkBoy", VSHClassType_Boss);
+  //SaxtonHale_RegisterClass("BonkBoy", VSHClassType_Boss);
   SaxtonHale_RegisterClass("BrutalSniper", VSHClassType_Boss);
   SaxtonHale_RegisterClass("Bunny", VSHClassType_Boss);
   SaxtonHale_RegisterClass("DemoPan", VSHClassType_Boss);
   SaxtonHale_RegisterClass("DemoRobot", VSHClassType_Boss);
   SaxtonHale_RegisterClass("GentleSpy", VSHClassType_Boss);
+  SaxtonHale_RegisterClass("GrayMann", VSHClassType_Boss);
   SaxtonHale_RegisterClass("Horsemann", VSHClassType_Boss);
   SaxtonHale_RegisterClass("Merasmus", VSHClassType_Boss);
   SaxtonHale_RegisterClass("PainisCupcake", VSHClassType_Boss);
@@ -704,6 +720,9 @@ public void OnPluginStart()
   SaxtonHale_RegisterClass("SeeldierMinion", VSHClassType_Boss);
   SaxtonHale_RegisterClass("AnnouncerMinion", VSHClassType_Boss);
   SaxtonHale_RegisterClass("MinionRanger", VSHClassType_Boss);
+  SaxtonHale_RegisterClass("GrayMannSoldierMinion", VSHClassType_Boss);
+	SaxtonHale_RegisterClass("GrayMannDemomanMinion", VSHClassType_Boss);
+	SaxtonHale_RegisterClass("GrayMannPyroMinion", VSHClassType_Boss);
   SaxtonHale_RegisterClass("Zombie", VSHClassType_Boss);
   
   //Register ability
@@ -747,7 +766,7 @@ public void OnPluginStart()
   g_ConfigConvar.Create("vsh_telefrag_damage", "9001.0", "Damage amount to boss from telefrag", _, true, 0.0);
   g_ConfigConvar.Create("vsh_music_enable", "1", "Enable boss music?", _, true, 0.0, true, 1.0);
   g_ConfigConvar.Create("vsh_rps_enable", "1", "Allow everyone use Rock Paper Scissors Taunt?", _, true, 0.0, true, 1.0);
-  
+
   //Incase of lateload, call client join functions
   for (int iClient = 1; iClient <= MaxClients; iClient++)
   {
@@ -914,16 +933,63 @@ public void OnMapStart()
   GetCurrentMap(sMapName, sizeof(sMapName));
   GetMapDisplayName(sMapName, sMapName, sizeof(sMapName));
   
-  int iForceLoad = g_ConfigConvar.LookupInt("vsh_force_load");
+  int iForceLoad = 1;//= g_ConfigConvar.LookupInt("vsh_force_load");
   
   if (iForceLoad == 0)
   {
     g_bEnabled = false;
+  } 
+  else if (StrContains(sMapName, "pl_", false) != -1)
+  {
+    Config_Refresh();
+
+    //Precache every bosses/abilities/modifiers registered
+    SaxtonHaleBase boss = SaxtonHaleBase(0); //client index doesn't matter
+    ArrayList aClass = SaxtonHale_GetAllClass();
+    
+    int iLength = aClass.Length;
+    for (int i = 0; i < iLength; i++)
+    {
+      char sType[MAX_TYPE_CHAR];
+      aClass.GetString(i, sType, sizeof(sType));
+      if (boss.StartFunction(sType, "Precache"))
+        Call_Finish();
+    }
+    
+    delete aClass;
+
+    for (int i = 1; i <= 4; i++)
+    {
+      char sBackStabSound[PLATFORM_MAX_PATH];
+      Format(sBackStabSound, sizeof(sBackStabSound), "vsh_rewrite/stab0%i.mp3", i);
+      PrepareSound(sBackStabSound);
+    }
+
+    PrecacheParticleSystem("ExplosionCore_MidAir");
+    PrecacheParticleSystem(PARTICLE_GHOST);
+    PrecacheParticleSystem("eyeboss_tp_vortex");
+    PrecacheParticleSystem("eb_death_vortex01");
+
+    PrecacheSound(SOUND_ALERT);
+    PrecacheSound(SOUND_METERFULL);
+    PrecacheSound(SOUND_BACKSTAB);
+    PrecacheSound(SOUND_DOUBLEDONK);
+    PrecacheSound(SOUND_JAR_EXPLODE);
+    PrecacheSound(SOUND_NULL);
+    
+    g_iSpritesLaserbeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
+    g_iSpritesGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
+    
+    CreateTimer(60.0, Timer_WelcomeMessage);
+
+    g_iTotalRoundPlayed = 1; // Set this so VSH logic continues.
+    g_bEnabled = true;
+    g_bForceLoad = true; // Lazy: Set this so we can load VSH without arena.
   }
-  else if ((iForceLoad == 1)
-    || (StrContains(sMapName, "vsh_", false) != -1 && StrContains(sMapName, "vsh_dr_", false) == -1) 
-    || (StrContains(sMapName, "ff2_", false) != -1)
-    || (StrContains(sMapName, "arena_", false) != -1))
+  else if ((StrContains(sMapName, "vsh_", false) != -1)
+        || (StrContains(sMapName, "vsh_dr_", false) == -1) 
+        || (StrContains(sMapName, "ff2_", false) != -1)
+        || (StrContains(sMapName, "arena_", false) != -1))
   {
     if (FindEntityByClassname(-1, "tf_logic_arena") == -1)
     {
@@ -957,6 +1023,8 @@ public void OnMapStart()
 
     PrecacheParticleSystem("ExplosionCore_MidAir");
     PrecacheParticleSystem(PARTICLE_GHOST);
+    PrecacheParticleSystem("eyeboss_tp_vortex");
+    PrecacheParticleSystem("eb_death_vortex01");
 
     PrecacheSound(SOUND_ALERT);
     PrecacheSound(SOUND_METERFULL);
@@ -968,12 +1036,11 @@ public void OnMapStart()
     g_iSpritesLaserbeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
     g_iSpritesGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
     
-    //Dome_MapStart();
-    
     CreateTimer(60.0, Timer_WelcomeMessage);
-    //CreateTimer(240.0, Timer_WelcomeMessage, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
-    
+
+    g_iTotalRoundPlayed = 0;
     g_bEnabled = true;
+    g_bForceLoad = false;
   }
   else
   {
@@ -1030,6 +1097,10 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
   {
     SDKHook(iEntity, SDKHook_StartTouchPost, Tags_OnProjectileTouch);
   }
+  else if (strncmp(sClassname, "tf_weapon", 9) == 0)
+	{
+		SDK_FVisible(iEntity);
+	}
   else if (strncmp(sClassname, "item_healthkit_", 15) == 0
     || strncmp(sClassname, "item_ammopack_", 14) == 0
     || strcmp(sClassname, "tf_ammo_pack") == 0
@@ -1718,6 +1789,79 @@ void Client_OnButtonRelease(int iClient, int button)
     boss.CallFunction("OnButtonRelease", button);
 }
 
+// TODO: move these into a file.
+// UPD: 12.11.2015
+// SPELLS DEFINES
+#define FIREBALL    0   // Done
+#define BATS        1   // Done
+#define PUMPKIN     2   // Done
+#define TELE        3   // Done
+#define LIGHTNING   4   // Done
+#define BOSS        5   // Done
+#define METEOR      6   // Done
+#define ZOMBIEH     7   // Done
+#define ZOMBIE      8
+#define PUMPKIN2    9
+
+stock int ShootProjectile(int client, int spell)
+{
+	float vAngles[3]; // original
+	float vPosition[3]; // original
+	GetClientEyeAngles(client, vAngles);
+	GetClientEyePosition(client, vPosition);
+	char strEntname[45] = "";
+	switch(spell)
+	{
+		case FIREBALL: 		strEntname = "tf_projectile_spellfireball";
+		case LIGHTNING: 	strEntname = "tf_projectile_lightningorb";
+		case PUMPKIN: 		strEntname = "tf_projectile_spellmirv";
+		case PUMPKIN2: 		strEntname = "tf_projectile_spellpumpkin";
+		case BATS: 			strEntname = "tf_projectile_spellbats";
+		case METEOR: 		strEntname = "tf_projectile_spellmeteorshower";
+		case TELE: 			strEntname = "tf_projectile_spelltransposeteleport";
+		case BOSS:			strEntname = "tf_projectile_spellspawnboss";
+		case ZOMBIEH:		strEntname = "tf_projectile_spellspawnhorde";
+		case ZOMBIE:		strEntname = "tf_projectile_spellspawnzombie";
+	}
+	int iTeam = GetClientTeam(client);
+	int iSpell = CreateEntityByName(strEntname);
+	
+	if(!IsValidEntity(iSpell))
+		return -1;
+	
+	float vVelocity[3];
+	float vBuffer[3];
+	
+	GetAngleVectors(vAngles, vBuffer, NULL_VECTOR, NULL_VECTOR);
+	vVelocity[0] = vBuffer[0]*1100.0; //Speed of a tf2 rocket.
+	vVelocity[1] = vBuffer[1]*1100.0;
+	vVelocity[2] = vBuffer[2]*1100.0;
+	SetEntPropEnt(iSpell, Prop_Send, "m_hOwnerEntity", client);
+	SetEntProp(iSpell,    Prop_Send, "m_bCritical", (GetRandomInt(0, 100) <= 5)? 1 : 0, 1);
+	SetEntProp(iSpell,    Prop_Send, "m_iTeamNum",     iTeam, 1);
+	SetEntProp(iSpell,    Prop_Send, "m_nSkin", (iTeam-2));
+
+	TeleportEntity(iSpell, vPosition, vAngles, NULL_VECTOR);
+
+	SetVariantInt(iTeam);
+	AcceptEntityInput(iSpell, "TeamNum", -1, -1, 0);
+	SetVariantInt(iTeam);
+	AcceptEntityInput(iSpell, "SetTeam", -1, -1, 0); 
+	DispatchSpawn(iSpell);
+	TeleportEntity(iSpell, NULL_VECTOR, NULL_VECTOR, vVelocity);
+
+	return iSpell;
+}
+
+stock int GetActiveWep(const int client) {
+	int weapon = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+	return( IsValidEntity(weapon) ) ? weapon : -1;
+}
+
+stock bool IsWeaponSlotActive(const int client, const int slot) {
+	return GetPlayerWeaponSlot(client, slot) == GetActiveWep(client);
+}
+
 public Action TF2_CalcIsAttackCritical(int iClient, int iWeapon, char[] sWepClassName, bool &bResult)
 {
   if (!g_bEnabled) return Plugin_Continue;
@@ -1732,7 +1876,16 @@ public Action TF2_CalcIsAttackCritical(int iClient, int iWeapon, char[] sWepClas
   {
     int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
     int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+
     
+	  /// Sun on a Stick - fireball
+	  if( iIndex == 349 ) {
+		if( TF2_GetPlayerClass(iClient)==TFClass_Scout 
+			&& IsWeaponSlotActive(iClient, TFWeaponSlot_Melee) ) {
+			ShootProjectile(iClient, FIREBALL);
+		}
+	}
+
     if (WeaponSlot_Primary <= iSlot <= WeaponSlot_BuilderEngie)
     {
       TagsParams tParams = new TagsParams();
@@ -1874,4 +2027,11 @@ void Frame_KillLight(int iRef)
   int iLight = EntRefToEntIndex(iRef);
   if (iLight > MaxClients)
     AcceptEntityInput(iLight, "Kill");
+}
+
+// Allow Boss to take teleporters - Taken from AnyTeleporter
+public Action TF2_OnPlayerTeleport(int iClient, int iTeleporter, bool& result) 
+{
+	result = true;
+	return Plugin_Changed;
 }

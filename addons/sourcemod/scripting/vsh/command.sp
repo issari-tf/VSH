@@ -38,6 +38,11 @@ public void Command_Init()
   Command_Create("special", Command_ForceSpecialRound);
   //Command_Create("dome", Command_ForceDome);
   Command_Create("rage", Command_SetRage);
+
+  // TODO make these admin only.
+  Command_Create("BossVsBosses", Command_BossVsBosses);
+  //Command_Create("SelfBoss", Command_SelfBoss);
+  Command_Create("BossesVsBosses", Command_BossesVsBosses);
 }
 
 stock void Command_Create(const char[] sCommand, ConCmd callback)
@@ -49,6 +54,76 @@ stock void Command_Create(const char[] sCommand, ConCmd callback)
     RegConsoleCmd(sBuffer, callback);
   }
 }
+
+public Action Command_MakeMiniBoss(int iClient, int iArgs) 
+{
+   SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+    if (boss.bValid) {
+      //PluginStop(true, "[VSH] CLIENT SELECTED TO BE BOSS IS ALREADY BOSS!!!!");
+    return Plugin_Handled;
+    }
+    char sBossType[MAX_TYPE_CHAR];
+    boss.CreateClass("SaxtonHale");
+
+    TF2_RespawnPlayer(boss.iClient);
+      return Plugin_Handled;
+}
+
+public Action Command_BossesVsBosses(int iClient, int iArgs) 
+{
+  int iRedCount = 0;
+  int iBlueCount = 0;
+
+  for (int i = 1; i <= MaxClients; i++) 
+  {
+    if (!IsClientInGame(i) || !IsPlayerAlive(i))
+      continue;
+
+    // Skip clients who are already a boss
+    SaxtonHaleBase boss = SaxtonHaleBase(i);
+    if (boss.bValid)
+      continue;
+
+    // Create boss type
+    boss.CreateClass("SaxtonHale");
+
+    // Assign to the smaller team
+    TFTeam team = (iRedCount <= iBlueCount) ? TFTeam_Red : TFTeam_Blue;
+
+    // Join and count
+    TF2_ForceTeamJoin(i, team);
+    if (team == TFTeam_Red) iRedCount++; else iBlueCount++;
+
+    // Respawn as boss
+    TF2_RespawnPlayer(i);
+  }
+
+  PrintToChatAll("%s %sSpecial Round: %sBosses Vs Bosses", TEXT_TAG, COLOR_YELLOW, COLOR_RED);
+  return Plugin_Handled;
+}
+
+public Action Command_BossVsBosses(int iClient, int iArgs) 
+{
+  for (int i = 1; i <= MaxClients; i++) {
+     if (!IsClientInGame(i))
+      continue;
+
+    // Create our boss.
+    SaxtonHaleBase boss = SaxtonHaleBase(i);
+    if (boss.bValid)
+      continue;
+
+    // Create boss type
+    char sBossType[MAX_TYPE_CHAR];
+    boss.CreateClass("SaxtonHale");
+
+    // Respawn as boss
+    TF2_RespawnPlayer(i);
+  }
+  PrintToChatAll("%s %sSpecial Round: %sUltra Boss Vs Bosses", TEXT_TAG, COLOR_YELLOW, COLOR_RED);
+  return Plugin_Handled;
+}
+
 
 public Action Command_MainMenu(int iClient, int iArgs)
 {

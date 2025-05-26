@@ -271,6 +271,11 @@ public Action SaxtonHaleBoss_OnAttackDamage(SaxtonHaleBase boss, int victim, int
   return Plugin_Continue;
 }
 
+
+public bool TraceRayIgnoreEnts(int entity, int mask, any data) {
+	return entity==0;
+}
+
 public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 {
   Action action = Plugin_Continue;
@@ -279,6 +284,15 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
   {
     if ((attacker <= 0 || attacker > MaxClients) && inflictor == 0)
     {
+      // Reset airshot count for all clients when the boss lands
+      for (int i = 1; i <= MaxClients; i++)
+      {
+        if (IsClientInGame(i))
+        {
+          g_iPlayerAirshotCount[i] = 0;
+        }
+      }
+
       //Make fall damage deal 0.1, so boss dont take any damage but allow stomp damage hook to work 
       damage = 0.1;
       action = Plugin_Changed;
@@ -293,22 +307,164 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
       EmitSoundToAll(sSound, boss.iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
   }
 
+  // Airshot detection
+  if (inflictor > MaxClients && !boss.bMinion) 
+  {
+    int flags = GetEntityFlags(boss.iClient);
+    bool isInAir = !(flags & FL_ONGROUND) && !(flags & FL_INWATER);
+    if (isInAir)
+    {
+      char sInflictor[32];
+      GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
+      if (StrEqual(sInflictor, "tf_projectile_rocket") || StrEqual(sInflictor, "tf_projectile_pipe")) 
+      {
+        float downVec[3] = { 90.0, 0.0, 0.0 }; // downward trace
+        TR_TraceRayFilter(damagePosition, downVec, MASK_PLAYERSOLID_BRUSHONLY, RayType_Infinite, TraceRayIgnoreEnts);
+
+        if (TR_DidHit()) {
+          float hitPos[3];
+          TR_GetEndPosition(hitPos);
+          float distSqr = GetVectorDistance(damagePosition, hitPos, true);
+
+          const float airShotThreshold = 80.0;
+          if (distSqr >= airShotThreshold * airShotThreshold) {
+            // Increase airshot count and damage
+            g_iPlayerAirshotCount[attacker]++;
+            damage *= g_iPlayerAirshotCount[attacker]; // Increase damage
+            action = Plugin_Changed;
+            PrintToChatAll("%s[VSH] %s%N %sjust %sAIRSHOT %s%N %sx%i!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_BLUE, boss.iClient, COLOR_YELLOW, g_iPlayerAirshotCount[attacker]);
+          }
+        }
+      }
+    }
+  }
+
+  // Fireball
+  if (damagecustom == TF_CUSTOM_SPELL_FIREBALL) 
+  {
+    //Ensure damage is consistent and prevent knockback.
+    damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+    TF2_RemoveCondition(boss.iClient, TFCond_OnFire);
+    TF2_IgnitePlayer(boss.iClient, attacker, 4.0);
+    damage = 30.0;
+    action = Plugin_Changed;
+  }
+
+  if (damagecustom == TF_CUSTOM_BACKSTAB)
+  {
+    PrintToChatAll("%s[VSH] %s%N %sjust %sBACKSTABBED %s%N %sfor %i dmg", 
+      COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, 1000);
+  }
+
+  // Taunt Kills
+  switch (damagecustom)
+  {
+    case TF_CUSTOM_TAUNT_HADOUKEN:
+    {
+      PrintToChatAll("%s[VSH] %s%N %sunleashed a %sHADOUKEN %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(5000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_HIGH_NOON:
+    {
+      PrintToChatAll("%s[VSH] %s%N %schanneled the %sHIGH NOON %sand obliterated %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(9001);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_GRAND_SLAM:
+    {
+      PrintToChatAll("%s[VSH] %s%N %sslammed %s%N %sto the moon with a %sGRAND SLAM!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
+      damage = float(8000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_FENCING:
+    {
+      PrintToChatAll("%s[VSH] %s%N %sperformed a lethal %sFENCING LUNGE %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(8000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_ARROW_STAB:
+    {
+      PrintToChatAll("%s[VSH] %s%N %sstabbed %s%N %swith an %sARROW!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
+      damage = float(5000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_GRENADE:
+    {
+      PrintToChatAll("%s[VSH] %s%N %sthrew a %sTAUNT GRENADE %sand blew up %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(9001);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_BARBARIAN_SWING:
+    {
+      PrintToChatAll("%s[VSH] %s%N %swent full %sBARBARIAN %sand crushed %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(5000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_UBERSLICE:
+    {
+      PrintToChatAll("%s[VSH] %s%N %sexecuted an %sUBERSLICE %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(5000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_ENGINEER_SMASH:
+    {
+      PrintToChatAll("%s[VSH] %s%N %ssmashed %s%N %swith a mighty %sENGY SMASH!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
+      damage = float(5000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_ENGINEER_ARM:
+    {
+      PrintToChatAll("%s[VSH] %s%N %sused the %sENGY ARM %sto obliterate %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(5000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+
+    case TF_CUSTOM_TAUNT_ARMAGEDDON:
+    {
+      PrintToChatAll("%s[VSH] %s%N %striggered %sARMAGEDDON %sand erased %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
+      damage = float(5000);
+      //damagetype &= ~DMG_CRIT;
+      action = Plugin_Changed;
+    }
+  }
+
+
   //if (GetEntityFlags(boss.iClient) & FL_ONGROUND || TF2_IsUbercharged(boss.iClient))
   //{
   //	damagetype |= DMG_PREVENT_PHYSICS_FORCE;
   //	action = Plugin_Changed;
   //}
 
-  if (inflictor > MaxClients && !boss.bMinion)
-  {
-    char sInflictor[32];
-    GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
-    if (strcmp(sInflictor, "tf_projectile_sentryrocket") == 0 || strcmp(sInflictor, "obj_sentrygun") == 0)
-    {
-      damagetype |= DMG_PREVENT_PHYSICS_FORCE;
-      action = Plugin_Changed;
-    }
-  }
+  //if (inflictor > MaxClients && !boss.bMinion)
+  //{
+  //  char sInflictor[32];
+  //  GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
+  //  if (strcmp(sInflictor, "tf_projectile_sentryrocket") == 0 || strcmp(sInflictor, "obj_sentrygun") == 0)
+  //  {
+  //    damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+  //    action = Plugin_Changed;
+  //  }
+  //}
 
   if (MaxClients < attacker)
   {
@@ -407,6 +563,7 @@ public void ApplyBossModel(int iClient)
   SetVariantString(sModel);
   AcceptEntityInput(iClient, "SetCustomModel");
   SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
+  //SetEntPropFloat(iClient, Prop_Send, "m_flModelScale", 1.25);
 }
 
 public Action Timer_BossRageMusic(Handle hTimer, SaxtonHaleBase boss)

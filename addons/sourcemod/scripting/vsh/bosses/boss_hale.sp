@@ -163,6 +163,7 @@ public void SaxtonHale_GetBossInfo(SaxtonHaleBase boss, char[] sInfo, int length
 public void SaxtonHale_OnSpawn(SaxtonHaleBase boss)
 {
   char attribs[128];
+  //                                
   Format(attribs, sizeof(attribs), "2 ; 2.80 ; 252 ; 0.5 ; 259 ; 1.0 ; 214 ; %d", GetRandomInt(9999, 99999));
   int iWeapon = boss.CallFunction("CreateWeapon", 195, "tf_weapon_shovel", 100, TFQual_Strange, attribs);
   if (iWeapon > MaxClients)

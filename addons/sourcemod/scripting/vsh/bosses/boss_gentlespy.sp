@@ -215,53 +215,70 @@ public void GentleSpy_OnRage(SaxtonHaleBase boss)
     SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iPrimaryWep);
   }
 }
-
 public void GentleSpy_OnThink(SaxtonHaleBase boss)
 {
-  if (TF2_IsPlayerInCondition(boss.iClient, TFCond_Cloaked) || TF2_IsPlayerInCondition(boss.iClient, TFCond_CloakFlicker))
-  {	
-    if (!g_bIsCloaked[boss.iClient])
-    {
-      //Cloak started
-      g_bFirstCloak[boss.iClient] = true;
-      g_bIsCloaked[boss.iClient] = true;
-      boss.flSpeed *= 1.4;
-      //TF2_AddCondition(boss.iClient, TFCond_DefenseBuffMmmph, -1.0);
+    static const float CLOAK_SPEED_MULTIPLIER = 1.2;
+    static const float CLOAK_REGEN_RATE = 0.2;
+    static const float CLOAK_COOLDOWN = 1.5; // seconds
 
-      int iInvisWatch = GetPlayerWeaponSlot(boss.iClient, WeaponSlot_InvisWatch);
-      if (iInvisWatch > MaxClients && IsValidEntity(iInvisWatch))
-        TF2Attrib_SetByDefIndex(iInvisWatch, ATTRIB_JUMP_HEIGHT, 3.0);
-    }
-    
-    //Remove all cond in the list if have one
-    for (int i = 0; i < sizeof(g_nGentleSpyCloak); i++)
-      if (TF2_IsPlayerInCondition(boss.iClient, g_nGentleSpyCloak[i]))
-        TF2_RemoveCondition(boss.iClient, g_nGentleSpyCloak[i]);
-    
-    //Cloak meter is draining, update hud
-    boss.CallFunction("UpdateHudInfo", 0.0, 0.0);
-  }
-  else
-  {
-    // Increase Cloak when not active.
-    float flCloak = GetEntPropFloat(boss.iClient, Prop_Send, "m_flCloakMeter");
-		flCloak += 0.1;
-		if (flCloak > 99.0) 
-      flCloak = 100;
-		SetEntPropFloat(boss.iClient, Prop_Send, "m_flCloakMeter", flCloak);
+    static float g_flCloakCooldown[MAXPLAYERS + 1];
 
-    if (g_bIsCloaked[boss.iClient])
+    if (TF2_IsPlayerInCondition(boss.iClient, TFCond_Cloaked) || TF2_IsPlayerInCondition(boss.iClient, TFCond_CloakFlicker))
     {
-      //Cloak ended
-      g_bIsCloaked[boss.iClient] = false;
-      boss.flSpeed /= 1.4;
-      //TF2_RemoveCondition(boss.iClient, TFCond_DefenseBuffMmmph);
-      
-      int iInvisWatch = GetPlayerWeaponSlot(boss.iClient, WeaponSlot_InvisWatch);
-      if (iInvisWatch > MaxClients && IsValidEntity(iInvisWatch))
-        TF2Attrib_RemoveByDefIndex(iInvisWatch, ATTRIB_JUMP_HEIGHT);
+        if (!g_bIsCloaked[boss.iClient])
+        {
+            // Cloak just started
+            g_bFirstCloak[boss.iClient] = true;
+            g_bIsCloaked[boss.iClient] = true;
+            boss.flSpeed *= CLOAK_SPEED_MULTIPLIER;
+
+            int iInvisWatch = GetPlayerWeaponSlot(boss.iClient, WeaponSlot_InvisWatch);
+            if (iInvisWatch > MaxClients && IsValidEntity(iInvisWatch))
+            {
+                // Optional: Jump height boost only for 2 seconds after decloak, not persistent
+                TF2Attrib_SetByDefIndex(iInvisWatch, ATTRIB_JUMP_HEIGHT, 1.5);
+            }
+        }
+
+        // Remove unwanted conditions during cloak
+        for (int i = 0; i < sizeof(g_nGentleSpyCloak); i++)
+        {
+            if (TF2_IsPlayerInCondition(boss.iClient, g_nGentleSpyCloak[i]))
+            {
+                TF2_RemoveCondition(boss.iClient, g_nGentleSpyCloak[i]);
+            }
+        }
+
+        // Update HUD cloak meter
+        boss.CallFunction("UpdateHudInfo", 0.0, 0.0);
     }
-  }
+    else
+    {
+        float currentTime = GetGameTime();
+        if (g_bIsCloaked[boss.iClient])
+        {
+            // Cloak just ended
+            g_bIsCloaked[boss.iClient] = false;
+            boss.flSpeed /= CLOAK_SPEED_MULTIPLIER;
+            g_flCloakCooldown[boss.iClient] = currentTime + CLOAK_COOLDOWN;
+
+            int iInvisWatch = GetPlayerWeaponSlot(boss.iClient, WeaponSlot_InvisWatch);
+            if (iInvisWatch > MaxClients && IsValidEntity(iInvisWatch))
+            {
+                TF2Attrib_RemoveByDefIndex(iInvisWatch, ATTRIB_JUMP_HEIGHT);
+            }
+        }
+
+        // Regenerate cloak only if cooldown is done
+        if (currentTime >= g_flCloakCooldown[boss.iClient])
+        {
+            float flCloak = GetEntPropFloat(boss.iClient, Prop_Send, "m_flCloakMeter");
+            flCloak += CLOAK_REGEN_RATE;
+            if (flCloak > 99.0)
+                flCloak = 99.0;
+            SetEntPropFloat(boss.iClient, Prop_Send, "m_flCloakMeter", flCloak);
+        }
+    }
 }
 
 public void GentleSpy_GetHudInfo(SaxtonHaleBase boss, char[] sMessage, int iLength, int iColor[4])

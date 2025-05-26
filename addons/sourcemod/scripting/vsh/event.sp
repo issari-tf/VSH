@@ -21,6 +21,8 @@ void Event_Init()
   HookUserMessage(GetUserMessageId("PlayerJarated"), Event_Jarated);
 }
 
+// On Round Start Orbit around player.
+
 public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcast)
 {
   g_bSpawnTeamSwitch = false;
@@ -104,7 +106,183 @@ public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcas
 
   g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();	//Update amount of attack players
 
-  RequestFrame(Frame_InitVshPreRoundTimer, tf_arena_preround_time.IntValue);
+  // Only kill in arena
+  if (!g_bForceLoad)
+    RequestFrame(Frame_InitVshPreRoundTimer, tf_arena_preround_time.IntValue);
+
+  /////// Lazy: implementing the arena code here.
+  if (g_bForceLoad)
+  {
+    if (!g_bEnabled || GameRules_GetProp("m_bInWaitingForPlayers")) return;
+
+    //Play one round of arena, and force unlock/enable dome
+    if (g_iTotalRoundPlayed <= 0)
+    {
+      GameRules_SetPropFloat("m_flCapturePointEnableTime", 0.0);
+      return;
+    }
+
+    g_bRoundStarted = true;
+    g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();
+
+    //New round started
+    for (int iClient = 1; iClient <= MaxClients; iClient++)
+    {
+      if (!IsClientInGame(iClient)) continue;
+
+      g_iPlayerDamage[iClient] = 0;
+      g_iPlayerAssistDamage[iClient] = 0;
+      ClassLimit_SetMainClass(iClient, TFClass_Unknown);
+      
+      if (!SaxtonHale_IsValidAttack(iClient)) continue;
+
+      //Display weapon balances in chat
+      TFClassType nClass = TF2_GetPlayerClass(iClient);
+
+      ClassLimit_SetMainClass(iClient, nClass);
+
+      // Create Panel.
+      Panel panel = new Panel();
+      panel.SetTitle("VSH Weapon Info");
+
+      for (int iSlot = 0; iSlot <= WeaponSlot_InvisWatch; iSlot++)
+      {
+        int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+        
+        if (IsValidEdict(iWeapon))
+        {
+          int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+          for (int i = 0; i <= 1; i++)
+          {					
+            char sDesp[255];
+            
+            // Desp for all weapon in class slot
+            if (i == 0)
+              g_ConfigClass[nClass][iSlot].GetDesp(sDesp, sizeof(sDesp));
+            // Desp for specific index
+            else if (i == 1)
+              g_ConfigIndex.GetDesp(iIndex, sDesp, sizeof(sDesp));
+
+            if (!StrEmpty(sDesp))
+            {
+              panel.DrawItem(sDesp);
+            }
+          }
+        }
+      }
+      panel.DrawItem("Exit");
+      panel.Send(iClient, PanelHandler, 10);
+      delete panel;
+    }
+    
+    //Play boss music if there is one
+    if (g_ConfigConvar.LookupInt("vsh_music_enable"))
+    {
+      for (int iBoss = 1; iBoss <= MaxClients; iBoss++)
+      {
+        if (SaxtonHale_IsValidBoss(iBoss, false))
+        {
+          SaxtonHaleBase boss = SaxtonHaleBase(iBoss);
+          
+          float flMusicTime;
+          boss.CallFunction("GetMusicInfo", g_sBossMusic, sizeof(g_sBossMusic), flMusicTime);
+          if (!StrEmpty(g_sBossMusic))
+          {
+            // Prefix the filepath with #, so it's considered as music by the engine, allowing people to adjust its volume through the music volume slider
+            if (g_sBossMusic[0] != '#')
+              Format(g_sBossMusic, sizeof(g_sBossMusic), "#%s", g_sBossMusic);
+            
+            for (int i = 1; i <= MaxClients; i++)
+              if (IsClientInGame(i) && Preferences_Get(i, VSHPreferences_Music))
+                EmitSoundToClient(i, g_sBossMusic, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
+            
+            if (flMusicTime > 0.0)
+              g_hTimerBossMusic = CreateTimer(flMusicTime, Timer_Music, boss, TIMER_REPEAT);
+            
+            break;
+          }
+        }
+      }
+    }
+    
+    // Refresh boss health from player count
+    for (int iClient = 1; iClient <= MaxClients; iClient++)
+    {
+      SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+      if (boss.bValid)
+      {
+        int iHealth = boss.CallFunction("CalculateMaxHealth");
+        boss.iMaxHealth = iHealth;
+        boss.iHealth = iHealth;
+      }
+    }
+    
+    char sMessage[2048], sBuffer[256], sPreviousModifiers[256];
+    int iColor[4] = {255, 255, 255, 255};
+    bool bAllowModifiersColor = true;
+    
+    // Loop through each bosses to display
+    for (int iClient = 1; iClient <= MaxClients; iClient++)
+    {
+      SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+      if (IsClientInGame(iClient) && !boss.bValid && !boss.bMinion) 
+      {
+        //TF2_RespawnPlayer(iClient);
+        TF2_RegeneratePlayer(iClient);
+        continue;
+      }
+      
+      if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
+      
+      // Get client name
+      Format(sMessage, sizeof(sMessage), "%s%N became", sMessage, iClient);
+      
+      // Display text who is what boss and modifiers with health
+      if (boss.bModifiers)
+      {
+        boss.CallFunction("GetModifiersName", sBuffer, sizeof(sBuffer));
+        Format(sMessage, sizeof(sMessage), "%s %s", sMessage, sBuffer);
+        
+        if (!StrEmpty(sPreviousModifiers) && !StrEqual(sPreviousModifiers, sBuffer))
+        {
+          // More than 1 different modifiers, dont allow colors
+          bAllowModifiersColor = false;
+        }
+        else
+        {
+          boss.CallFunction("GetRenderColor", iColor);
+        }
+        
+        Format(sPreviousModifiers, sizeof(sPreviousModifiers), sBuffer);
+      }
+      
+      // Get Boss name and health
+      boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
+      Format(sMessage, sizeof(sMessage), "%s %s with %d HP!", sMessage, sBuffer, boss.iMaxHealth);
+    }
+    
+    if (!bAllowModifiersColor)
+      for (int iRGB = 0; iRGB < sizeof(iColor); iRGB++)
+        iColor[iRGB] = 255;
+    
+    float flHUD[2];
+    flHUD[0] = -1.0;
+    flHUD[1] = 0.3;
+    
+    float flFade[2];
+    flFade[0] = 0.4;
+    flFade[1] = 0.4;
+
+    for (int i = 1; i <= MaxClients; i++)
+      if (IsClientInGame(i))
+        Hud_Display(i, CHANNEL_INTRO, sMessage, flHUD, 5.0, iColor, 0, 0.0, flFade);
+
+    // Display chat on who is next boss
+    int iNextPlayer = Queue_GetPlayerFromRank(1);
+    if (0 < iNextPlayer <= MaxClients && IsClientInGame(iNextPlayer))
+      PrintToChat(iNextPlayer, "%s================%s\nYou are about to be the next boss!\n%s================", TEXT_DARK, TEXT_COLOR, TEXT_DARK);
+
+  }
 }
 
 // Empty
@@ -240,7 +418,12 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
   for (int iClient = 1; iClient <= MaxClients; iClient++)
   {
     SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-    if (!IsClientInGame(iClient) || !boss.bValid || boss.bMinion) continue;
+    if (IsClientInGame(iClient) && !boss.bValid && !boss.bMinion) 
+    {
+      //TF2_RespawnPlayer(iClient);
+      TF2_RegeneratePlayer(iClient);
+      continue;
+    }
     
     if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
     

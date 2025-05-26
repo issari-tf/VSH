@@ -7,7 +7,7 @@ enum
 
 enum MenuBossOption
 {
-  MenuBossOption_Unknown,	//Also used for "back" button
+  MenuBossOption_Unknown,	// Also used for "back" button
   MenuBossOption_Select,
   MenuBossOption_Random,
   MenuBossOption_None
