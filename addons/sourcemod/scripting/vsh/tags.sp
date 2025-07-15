@@ -551,6 +551,12 @@ public void Tags_OnBackstab(int iClient, int iTarget, TagsParams tParams)
   EmitSoundToClient(iTarget, SOUND_BACKSTAB);
   PrintCenterText(iClient, "You backstabbed the boss!");
   PrintCenterText(iTarget, "You were backstabbed!");
+
+  // Backstab Annotation
+  char sMessage[128];
+  Format(sMessage, sizeof(sMessage), "%N just BACKSTABBED %N for 1000 dmg", iClient, iTarget);
+  TF2_ShowFollowingAnnotationToAll(iClient, sMessage);
+
   
   // Play boss backstab sound
   char sSound[255];
@@ -599,6 +605,11 @@ public void Tags_OnMarketGardened(int iClient, int iTarget, TagsParams tParams)
   PrintCenterText(iClient, "You market gardened him!");
   PrintCenterText(iTarget, "You were just market gardened!");
   PrintToChatAll("%s[VSH] %s%N %sjust %sMARKET GARDENED %s%N %sfor 1000 dmg", COLOR_OLIVE, COLOR_RED, iClient, COLOR_DEFAULT, COLOR_YELLOW, COLOR_BLUE, iTarget, COLOR_DEFAULT);  
+  
+  // Market Garden Annotation
+  char sMessage[128];
+  Format(sMessage, sizeof(sMessage), "%N just MARKET GARDENED %N for 1000 dmg", iClient, iTarget);
+  TF2_ShowFollowingAnnotationToAll(iClient, sMessage);
 
   EmitSoundToAll(SOUND_DOUBLEDONK, iClient);
 }
@@ -723,6 +734,69 @@ public void Tags_SummonZombie(int iClient, int iTarget, TagsParams tParams)
   
   delete aDeadPlayers;
   g_iZombieUsed[iTarget]++;
+}
+
+/*
+"Tags_GiveWeapon"
+{
+  "classname" "tf_weapon_rocketlauncher"
+  "index"     "15150"
+  "quality"   "6"
+  "level"     "29"
+  "attribs"   "134 ; 702.0 ; 2 ; 10.0 ; 6 ; 0.1 ; 4 ; 6.0 ; 57 ; 30.0 ; 318 ; 0.1"
+  "model"     "models/player/heavy.mdl"
+  "viewmodel" "models/weapons/c_models/c_bigaxe/c_bigaxe.mdl"
+  "duration"  "0"
+}
+
+*/
+
+public void Tags_GiveWeapon(int iClient, int iTarget, TagsParams tParams)
+{
+  char sClassname[MAXLEN_CONFIG_VALUE];
+  tParams.GetString("classname", sClassname, sizeof(sClassname));
+
+  int iIndex   = tParams.GetInt("index");
+  int iQuality = tParams.GetInt("quality");
+  int iLevel   = tParams.GetInt("level");
+
+  char sAttributes[MAXLEN_CONFIG_VALUE];
+  tParams.GetString("attributes", sAttributes, sizeof(sAttributes));
+
+  char sModel[MAXLEN_CONFIG_VALUE];
+  tParams.GetString("model", sModel, sizeof(sModel));
+
+  char sViewModel[MAXLEN_CONFIG_VALUE];
+  tParams.GetString("viewmodel", sViewModel, sizeof(sViewModel));
+
+  int iWeapon = TF2_CreateAndEquipWeapon(iClient, iIndex, sClassname, iLevel, iQuality, sAttributes);
+  if (iWeapon > MaxClients) 
+  {
+    if (!StrEmpty(sModel))
+    {
+      int iModel = PrecacheModel(sModel);
+			SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", iModel);
+
+      int iViewModel = CreateViewModel(iClient, iModel);
+      SetEntPropEnt(iViewModel, Prop_Send, "m_hWeaponAssociatedWith", iWeapon);
+      SetEntPropEnt(iWeapon, Prop_Send, "m_hExtraWearableViewModel", iViewModel);
+    }
+
+    if (!StrEmpty(sViewModel))
+    {
+      int iViewModel = PrecacheModel(sViewModel);
+      CreateViewModel(iClient, iViewModel);
+      SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
+    }
+
+    SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
+  }
+
+  int iDuration = tParams.GetInt("duration");
+  if (iDuration > 0)
+  {
+
+  }
 }
 
 public void Tags_AddAmmo(int iClient, int iTarget, TagsParams tParams)

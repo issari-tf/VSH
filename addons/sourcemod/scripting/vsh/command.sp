@@ -39,10 +39,15 @@ public void Command_Init()
   //Command_Create("dome", Command_ForceDome);
   Command_Create("rage", Command_SetRage);
 
-  // TODO make these admin only.
-  Command_Create("BossVsBosses", Command_BossVsBosses);
+  //Command_Create("BossVsBosses", Command_BossVsBosses);
   //Command_Create("SelfBoss", Command_SelfBoss);
-  Command_Create("BossesVsBosses", Command_BossesVsBosses);
+  //Command_Create("BossesVsBosses", Command_BossesVsBosses);
+
+  RegAdminCmd("sm_vshselfboss", Command_SelfBoss, ADMFLAG_GENERIC, "");
+  RegAdminCmd("sm_vshbossvsboss", Command_BossVsBosses, ADMFLAG_GENERIC, "");
+  RegAdminCmd("sm_vshbossesvsbosses", Command_BossesVsBosses, ADMFLAG_GENERIC, "");
+
+  RegAdminCmd("sm_vshdonator", Command_PlaySoundAll, ADMFLAG_RESERVATION, "Plays a precached sound to all players. Usage: sm_playsoundall <index>");
 }
 
 stock void Command_Create(const char[] sCommand, ConCmd callback)
@@ -55,18 +60,17 @@ stock void Command_Create(const char[] sCommand, ConCmd callback)
   }
 }
 
-public Action Command_MakeMiniBoss(int iClient, int iArgs) 
+public Action Command_SelfBoss(int iClient, int iArgs) 
 {
    SaxtonHaleBase boss = SaxtonHaleBase(iClient);
     if (boss.bValid) {
       //PluginStop(true, "[VSH] CLIENT SELECTED TO BE BOSS IS ALREADY BOSS!!!!");
-    return Plugin_Handled;
+      return Plugin_Handled;
     }
-    char sBossType[MAX_TYPE_CHAR];
     boss.CreateClass("SaxtonHale");
 
     TF2_RespawnPlayer(boss.iClient);
-      return Plugin_Handled;
+    return Plugin_Handled;
 }
 
 public Action Command_BossesVsBosses(int iClient, int iArgs) 
@@ -114,7 +118,6 @@ public Action Command_BossVsBosses(int iClient, int iArgs)
       continue;
 
     // Create boss type
-    char sBossType[MAX_TYPE_CHAR];
     boss.CreateClass("SaxtonHale");
 
     // Respawn as boss
@@ -574,4 +577,165 @@ public Action Command_SetRage(int iClient, int iArgs)
 
   ReplyToCommand(iClient, "%s%s You do not have permission to use this command.", TEXT_TAG, TEXT_ERROR);
   return Plugin_Handled;
+}
+
+
+static const char g_SoundFiles[][] = {
+  "vsh_donator/effects/999-social-credit-siren.mp3",
+  "vsh_donator/effects/among-us-role-reveal-sound.mp3",
+  "vsh_donator/effects/ching-cheng-hanji.mp3",
+  "vsh_donator/effects/directed-by-robert-b_voI2Z4T.mp3",
+  "vsh_donator/effects/dun-dun-dun-sound-effect-brass_8nFBccR.mp3",
+  "vsh_donator/effects/error_CDOxCYm.mp3",
+  "vsh_donator/effects/french-meme-song.mp3",
+  "vsh_donator/effects/heyy-daddyyyyy-omg.mp3",
+  "vsh_donator/effects/i-am-steve.mp3",
+  "vsh_donator/effects/jojos-golden-wind_kL2WElB.mp3",
+  "vsh_donator/effects/ladies-and-gentlemen-we-got-him-song.mp3",
+  "vsh_donator/effects/lightskin-rizz-sin-city.mp3",
+  "vsh_donator/effects/my-movie-6_0RlWMvM.mp3",
+  "vsh_donator/effects/outro-song_oqu8zAg.mp3",
+  "vsh_donator/effects/sisyphus.mp3",
+  "vsh_donator/effects/spiderman-meme-song.mp3",
+  "vsh_donator/effects/tf_nemesis.mp3",
+  "vsh_donator/effects/tmpbxydyrz3.mp3",
+  "vsh_donator/effects/tmpq7mpzzl9.mp3",
+  "vsh_donator/effects/u-got-that-mp3-fix.mp3",
+  "vsh_donator/effects/what-are-you-doing-in-my-swamp-.mp3",
+  "vsh_donator/effects/wolves_-_kanye-6b019add-71f7-4a31-8363-ed112937445e.mp3",
+};
+
+/*
+public Action Command_PlaySoundAll(int client, int args)
+{
+  if (args < 1)
+  {
+    ReplyToCommand(client, "[SoundPlay] Usage: sm_playsoundall <0 - %d>", sizeof(g_SoundFiles) - 1);
+    return Plugin_Handled;
+  }
+
+  char sArg[8];
+  GetCmdArg(1, sArg, sizeof(sArg));
+  int index = StringToInt(sArg);
+
+  if (index < 0 || index >= sizeof(g_SoundFiles))
+  {
+    ReplyToCommand(client, "[SoundPlay] Invalid index. Use 0 - %d", sizeof(g_SoundFiles) - 1);
+    return Plugin_Handled;
+  }
+
+  char sSound[128];
+  strcopy(sSound, sizeof(sSound), g_SoundFiles[index]);
+
+  EmitSoundToAll(sSound);
+  PrintToChatAll("[SoundPlay] Admin played: \x04%s", sSound);
+
+  return Plugin_Handled;
+}*/
+
+
+Cookie g_hDonatorSound;
+
+public void DonatorSound_OnPluginStart()
+{
+  g_hDonatorSound = new Cookie("donator_sound", "Selected Donator Sound", CookieAccess_Protected);
+}
+
+char[] GetFilenameFromPath(const char[] path)
+{
+  static char filename[64];
+  int len = strlen(path);
+  int lastSlash = -1;
+
+  for (int i = len - 1; i >= 0; i--)
+  {
+    if (path[i] == '/')
+    {
+      lastSlash = i;
+      break;
+    }
+  }
+
+  if (lastSlash != -1)
+    strcopy(filename, sizeof(filename), path[lastSlash + 1]);
+  else
+    strcopy(filename, sizeof(filename), path);
+
+  return filename;
+}
+
+public Action Command_PlaySoundAll(int client, int args)
+{
+  if (!CheckCommandAccess(client, "sm_playsoundall", ADMFLAG_GENERIC))
+  {
+    ReplyToCommand(client, "You do not have permission to use this command.");
+    return Plugin_Handled;
+  }
+
+  Menu menu = new Menu(MenuHandler_PlaySound);
+  menu.SetTitle("Choose a Sound to Play");
+
+  for (int i = 0; i < sizeof(g_SoundFiles); i++)
+  {
+    char sDisplay[64];
+    Format(sDisplay, sizeof(sDisplay), "%s", GetFilenameFromPath(g_SoundFiles[i]));
+    menu.AddItem(g_SoundFiles[i], sDisplay);  // Store path as item ID
+  }
+
+  // Add option to clear saved sound
+  menu.AddItem("__clear__", "Clear Saved Sound");
+
+  menu.Display(client, 20);
+  return Plugin_Handled;
+}
+
+
+public int MenuHandler_PlaySound(Menu menu, MenuAction action, int client, int item)
+{
+  if (action == MenuAction_End)
+  {
+    delete menu;
+  }
+  else if (action == MenuAction_Select)
+  {
+    char sSelection[128];
+    menu.GetItem(item, sSelection, sizeof(sSelection));
+
+    if (StrEqual(sSelection, "__clear__"))
+    {
+      SetClientCookie(client, g_hDonatorSound, "");
+      PrintToChat(client, "[SoundPlay] \x04Your saved sound has been cleared.");
+      return 0;
+    }
+
+    // Store selected sound in cookie
+    SetClientCookie(client, g_hDonatorSound, sSelection);
+
+    // Play the sound
+    EmitSoundToClient(client, sSelection, _, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS);
+    PrintToChat(client, "[SoundPlay] \x04You played: %s", GetFilenameFromPath(sSelection));
+  }
+
+  return 0;
+}
+
+
+public bool DonatorSound_Play(int client)
+{
+
+  char sSound[128];
+  GetClientCookie(client, g_hDonatorSound, sSound, sizeof(sSound));
+  if (sSound[0] == '\0')
+    return false;
+
+  EmitSoundToAll(sSound);
+  return true;
+}
+
+void PrecacheDonatorAudio()
+{
+  for (int i = 0; i < sizeof(g_SoundFiles); i++)
+  {
+    PrepareSound(g_SoundFiles[i]);
+  }
 }

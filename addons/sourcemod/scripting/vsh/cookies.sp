@@ -1,6 +1,7 @@
 static Cookie g_hCookiesPreferences;
 static Cookie g_hCookiesQueue;
 
+
 void Cookies_Init()
 {
   g_ConfigConvar.Create("vsh_cookies_preferences", "1", "Should preferences use cookies to store? (Disable if you want to store preferences somewhere else)", _, true, 0.0, true, 1.0);

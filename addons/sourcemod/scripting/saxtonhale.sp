@@ -49,24 +49,6 @@
 
 #define PARTICLE_GHOST    "ghost_appearation"
 
-// Color 
-#define TEXT_TAG          "\x079EC34F[VSH]\x01"
-#define TEXT_COLOR        "\x01"
-#define TEXT_DARK         "\x07E17100"
-#define TEXT_POSITIVE     "\x0744FF11"
-#define TEXT_NEGATIVE     "\x07FF4411"
-#define TEXT_NEUTRAL      "\x07EEEEEE"
-#define TEXT_ERROR        "\x07FF2F00"
-
-#define COLOR_DEFAULT              "\x01"
-#define COLOR_OLIVE                "\x079EC34F"
-#define COLOR_YELLOW               "\x07FFFF00"
-#define COLOR_BLUE                 "\x0799CCFF" // same as BLU/Counter-Terrorist team color
-#define COLOR_RED                  "\x07FF4040" // same as RED/Terrorist team color
-
-#define COLOR_PLAYER               "\x02"
-#define COLOR_TEAM                 "\x03"
-
 const TFTeam TFTeam_Boss = TFTeam_Blue;
 const TFTeam TFTeam_Attack = TFTeam_Red;
 
@@ -227,7 +209,7 @@ enum
   NUM_OBSERVER_MODES,
 };
 
-Cookie g_SetBossCookie;
+
 
 char g_strPreferencesName[][] = {
   "Boss Selection",
@@ -261,14 +243,6 @@ char g_strSlotName[][] = {
   "Building"
 };
 
-// TF2 Building names
-char g_strBuildingName[TFObjectType][TFObjectMode][] = {
-  {"Dispenser", ""},
-  {"Teleporter Entrance", "Teleporter Exit"},
-  {"Sentry Gun", ""},
-  {"Sapper", ""},
-};
-
 // Color Tag
 char g_strColorTag[][] = {
   "{positive}",
@@ -277,16 +251,6 @@ char g_strColorTag[][] = {
   "{red}",
   "{neutral}",
   "{grey}"
-};
-
-// Color Code
-char g_strColorCode[][] = {
-  TEXT_POSITIVE,
-  TEXT_POSITIVE,
-  TEXT_NEGATIVE,
-  TEXT_NEGATIVE,
-  TEXT_NEUTRAL,
-  TEXT_NEUTRAL
 };
 
 // Default weapon index for each class and slot
@@ -316,6 +280,27 @@ TFClassType g_nClassDisplay[sizeof(g_strClassName)] = {
   TFClass_Sniper,
   TFClass_Spy,
 };
+
+Cookie g_SetBossCookie;
+
+
+// HALEDMG
+enum {
+	RED, GREEN, BLUE, ALPHA,
+	MaxColors
+}
+
+enum struct DmgTrackerData {
+	int RGBA[MaxColors];
+	int DmgSetting;
+}
+
+DmgTrackerData g_dmg[MAXPLAYERS+1];
+Handle         g_hDamageHUD;
+Cookie         g_haledmg_cookie;
+
+
+
 
 enum struct NextBoss
 {
@@ -347,7 +332,7 @@ int g_iHealthBarHealth;
 int g_iHealthBarMaxHealth;
 int g_iTelefragBuilder;
 
-// Player data
+//Player data
 int g_iPlayerLastButtons[MAXPLAYERS];
 int g_iPlayerDamage[MAXPLAYERS];
 int g_iPlayerAssistDamage[MAXPLAYERS];
@@ -357,27 +342,25 @@ int g_iPlayerAirshotCount[MAXPLAYERS]; // Track airshots per player
 
 int g_iClientFlags[MAXPLAYERS];
 
-// Game state data
+//Game state data
 int g_iTotalRoundPlayed;
 int g_iTotalAttackCount;
 
 // ConVars
-ConVar sv_alltalk; // 1
 ConVar tf_arena_use_queue;
 ConVar mp_teams_unbalance_limit;
-ConVar tf_arena_first_blood; // 0
+ConVar tf_arena_first_blood;
 ConVar tf_dropped_weapon_lifetime;
 ConVar mp_forcecamera;
+ConVar mp_friendlyfire;
 ConVar tf_scout_hype_pep_max;
-ConVar tf_damage_disablespread; // 1
-ConVar tf_use_fixed_weaponspread; // 1
+ConVar tf_damage_disablespread;
 ConVar tf_feign_death_activate_damage_scale;
-ConVar tf_feign_death_damage_scale; 
-ConVar tf_stealth_damage_reduction; 
-ConVar tf_feign_death_duration; // 7
-ConVar tf_feign_death_speed_duration; // 3
-ConVar tf_arena_preround_time; 
-ConVar tf_movement_aircurrent_aircontrol_mult; // 1.0
+ConVar tf_feign_death_damage_scale;
+ConVar tf_stealth_damage_reduction;
+ConVar tf_feign_death_duration;
+ConVar tf_feign_death_speed_duration;
+ConVar tf_arena_preround_time;
 
 #include "vsh/base_boss.sp"
 
@@ -462,14 +445,13 @@ public void OnPluginStart()
   AddMultiTargetFilter("@!boss", BossTargetFilter, "all non-bosses", false);
 
   // Collect the convars
-  sv_alltalk                           = FindConVar("sv_alltalk");
   tf_arena_use_queue                   = FindConVar("tf_arena_use_queue");
   mp_teams_unbalance_limit             = FindConVar("mp_teams_unbalance_limit");
   tf_arena_first_blood                 = FindConVar("tf_arena_first_blood");
   tf_dropped_weapon_lifetime           = FindConVar("tf_dropped_weapon_lifetime");
   mp_forcecamera                       = FindConVar("mp_forcecamera");
+  mp_friendlyfire                      = FindConVar("mp_friendlyfire");
   tf_scout_hype_pep_max                = FindConVar("tf_scout_hype_pep_max");
-  tf_use_fixed_weaponspread            = FindConVar("tf_use_fixed_weaponspread");
   tf_damage_disablespread              = FindConVar("tf_damage_disablespread");
   tf_feign_death_activate_damage_scale = FindConVar("tf_feign_death_activate_damage_scale");
   tf_feign_death_damage_scale          = FindConVar("tf_feign_death_damage_scale");
@@ -510,6 +492,9 @@ public void OnPluginStart()
   TagsCore_Init();
   TagsDamage_Init();
   TagsName_Init();
+
+  // REWORK THIS LATERR
+  DonatorSound_OnPluginStart();
   
   SaxtonHaleFunction func;
   
@@ -658,6 +643,13 @@ public void OnPluginStart()
   g_ConfigConvar.Create("vsh_music_enable", "1", "Enable boss music?", _, true, 0.0, true, 1.0);
   g_ConfigConvar.Create("vsh_rps_enable", "1", "Allow everyone use Rock Paper Scissors Taunt?", _, true, 0.0, true, 1.0);
 
+  g_haledmg_cookie = new Cookie("vsh_haledmg", "cookie to track boss damage settings", CookieAccess_Public);
+  RegConsoleCmd("haledmg", Command_damagetracker, "haledmg - Enable/disable the damage tracker.");
+  RegConsoleCmd("vshdmg", Command_damagetracker, "haledmg - Enable/disable the damage tracker.");
+  RegConsoleCmd("ff2dmg",  Command_damagetracker, "haledmg - Enable/disable the damage tracker.");
+  CreateTimer(180.0, Timer_Advertise);
+  g_hDamageHUD = CreateHudSynchronizer();
+
   // Incase of lateload, call client join functions
   for (int iClient = 1; iClient <= MaxClients; iClient++)
   {
@@ -670,6 +662,99 @@ public void OnPluginStart()
       OnClientPostAdminCheck(iClient);
     }
   }
+}
+
+public Action Command_damagetracker(int client, int args) {
+	if( client==0) {
+		PrintToServer("[VSH 2] The damage tracker cannot be enabled by Console.");
+		return Plugin_Handled;
+	} else if( args==0 ) 
+  {
+    // At start of function or block:
+char playersetting[4]; // Enough for "Off" or "On"
+if (g_dmg[client].DmgSetting == 0) {
+    strcopy(playersetting, sizeof(playersetting), "Off");
+} else {
+    strcopy(playersetting, sizeof(playersetting), "On");
+}
+PrintToChat(client, "[VSH] The damage tracker is %s.\n[VSH] Change it by saying \"!haledmg on [R] [G] [B] [A]\" or \"!haledmg off\"!", playersetting);
+
+		return Plugin_Handled;
+	}
+
+	char arg1[64];
+	int newval = 3;
+	GetCmdArg(1, arg1, sizeof(arg1));
+	if( StrEqual(arg1, "off", false) ) {
+		g_dmg[client].DmgSetting = 0;
+	}
+	if( StrEqual(arg1, "on", false) ) {
+		g_dmg[client].DmgSetting = 3;
+	}
+	if( StrEqual(arg1, "0", false) ) {
+		g_dmg[client].DmgSetting = 0;
+	}
+	if( StrEqual(arg1, "of", false) ) {
+		g_dmg[client].DmgSetting = 0;
+	}
+
+	if( !StrEqual(arg1, "off", false) && !StrEqual(arg1, "on", false) && !StrEqual(arg1, "0", false) && !StrEqual(arg1, "of", false) ) {
+		newval = StringToInt(arg1);
+
+    char newsetting[4];
+
+		if( newval > 8 ) {
+			newval = 8;
+		}
+		if( newval != 0 ) {
+			g_dmg[client].DmgSetting = newval;
+		}
+    
+if (newval != 0 && g_dmg[client].DmgSetting == 0) {
+    strcopy(newsetting, sizeof(newsetting), "Off");
+} else if (newval != 0 && g_dmg[client].DmgSetting > 0) {
+    strcopy(newsetting, sizeof(newsetting), "On");
+}
+
+
+		//CPrintToChat(client, "{olive}[VSH 2]{default} The damage tracker is now {lightgreen}%s{default}!", newsetting);
+	}
+
+	if (g_dmg[client].DmgSetting > 0)	{
+		PrintToChat(client, "[VSH] The damage tracker is displaying the top %i players!", g_dmg[client].DmgSetting);
+	}
+	else	{
+		PrintToChat(client, "[VSH] The damage tracker is now off!", g_dmg[client].DmgSetting);
+	}
+
+	if( AreClientCookiesCached(client) ) {
+		char strval[6]; IntToString(g_dmg[client].DmgSetting, strval, sizeof(strval));
+		g_haledmg_cookie.Set(client, strval);
+	}
+
+	char r[4], g[4], b[4], a[4];
+	if(args >= 2) {
+		GetCmdArg(2, r, sizeof(r));
+		if(!StrEqual(r, "_"))
+			g_dmg[client].RGBA[RED] = StringToInt(r);
+	}
+
+	if(args >= 3) {
+		GetCmdArg(3, g, sizeof(g));
+		if(!StrEqual(g, "_"))
+			g_dmg[client].RGBA[GREEN] = StringToInt(g);
+	}
+	if(args >= 4) {
+		GetCmdArg(4, b, sizeof(b));
+		if(!StrEqual(b, "_"))
+			g_dmg[client].RGBA[BLUE] = StringToInt(b);
+	}
+	if(args >= 5) {
+		GetCmdArg(5, a, sizeof(a));
+		if(!StrEqual(a, "_"))
+			g_dmg[client].RGBA[ALPHA] = StringToInt(a);
+	}
+	return Plugin_Handled;
 }
 
 public void OnLibraryAdded(const char[] sName)
@@ -923,6 +1008,9 @@ public void OnMapStart()
     PrecacheSound(SOUND_DOUBLEDONK);
     PrecacheSound(SOUND_JAR_EXPLODE);
     PrecacheSound(SOUND_NULL);
+
+    // HaleDMG
+    CreateTimer(0.1, Timer_Millisecond, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
     
     g_iSpritesLaserbeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
     g_iSpritesGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
@@ -937,6 +1025,87 @@ public void OnMapStart()
   {
     g_bEnabled = false;
   }
+
+  // Handle Custom Donator stuff
+  if (g_bEnabled)
+    PrecacheDonatorAudio();
+}
+
+public Action Timer_Advertise(Handle timer) 
+{
+	CreateTimer(180.0, Timer_Advertise);
+	PrintToChatAll("[VSH] Type \"!haledmg on\" to display the top 3 players! Type \"!haledmg off\" to turn it off again.");
+	return Plugin_Handled;
+}
+
+public Action Timer_Millisecond(Handle timer)
+{
+  if (!g_bEnabled)
+    return Plugin_Continue;
+
+  int iTopPlayers[3] = {-1, -1, -1};
+  int iTopDamage[3] = {-1, -1, -1};
+  char names[3][64];
+  int damages[3];
+
+  // Find top 3 players by damage + assist damage
+  for (int i = 1; i <= MaxClients; i++)
+  {
+    if (!IsClientInGame(i))
+      continue;
+
+    int iTotalDamage = g_iPlayerDamage[i] + g_iPlayerAssistDamage[i];
+
+    for (int j = 0; j < 3; j++)
+    {
+      if (iTotalDamage > iTopDamage[j])
+      {
+        // Shift lower ranks down
+        for (int k = 2; k > j; k--)
+        {
+          iTopDamage[k] = iTopDamage[k - 1];
+          iTopPlayers[k] = iTopPlayers[k - 1];
+          strcopy(names[k], sizeof(names[k]), names[k - 1]);
+        }
+
+        iTopDamage[j] = iTotalDamage;
+        iTopPlayers[j] = i;
+        GetClientName(i, names[j], sizeof(names[j]));
+        break;
+      }
+    }
+  }
+
+  // Prepare damage list string
+  char sDamageList[512];
+  Format(sDamageList, sizeof(sDamageList),
+        "Most damage dealt by:\n" ...
+        "1) %d - %s\n" ...
+        "2) %d - %s\n" ...
+        "3) %d - %s",
+        iTopDamage[0], iTopPlayers[0] != -1 ? names[0] : "N/A",
+        iTopDamage[1], iTopPlayers[1] != -1 ? names[1] : "N/A",
+        iTopDamage[2], iTopPlayers[2] != -1 ? names[2] : "N/A");
+
+  // Show HUD text to all valid clients (non-boss, alive, not pressing scoreboard)
+  for (int i = 1; i <= MaxClients; i++)
+  {
+    if (!IsClientInGame(i))
+      continue;
+
+    if (g_dmg[i].DmgSetting > 0)
+    {
+      if (!SaxtonHale_IsValidBoss(i) && !(GetClientButtons(i) & IN_SCORE))
+      {
+        SetHudTextParams(0.0, 0.0, 0.2,
+                        g_dmg[i].RGBA[RED], g_dmg[i].RGBA[GREEN],
+                        g_dmg[i].RGBA[BLUE], g_dmg[i].RGBA[ALPHA]);
+        ShowSyncHudText(i, g_hDamageHUD, "%s", sDamageList);
+      }
+    }
+  }
+
+  return Plugin_Continue;
 }
 
 public void OnGameFrame()
@@ -1174,12 +1343,16 @@ public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
     UpdateClientGlowEnt(iClient);
 }
 
+// Here is where i'd add our donator sounds.
 public Action Timer_RoundStartSound(Handle hTimer, int iClient)
 {
   SaxtonHaleBase boss = SaxtonHaleBase(iClient);
   if (0 < iClient <= MaxClients && IsClientInGame(iClient) && boss.bValid)
   {
-    //Play boss intro sound
+    // Donator only
+    if (DonatorSound_Play(iClient))
+      return Plugin_Continue;
+    
     char sSound[255];
     boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_RoundStart);
     if (!StrEmpty(sSound))
@@ -1267,6 +1440,19 @@ public void OnClientPutInServer(int iClient)
   SDKHook(iClient, SDKHook_StartTouch, Client_OnStartTouch);
   SDKHook(iClient, SDKHook_WeaponSwitchPost, Client_OnWeaponSwitchPost);
   
+  // HaleDMG
+  g_dmg[iClient].DmgSetting = 0;
+	g_dmg[iClient].RGBA[RED] = 255;
+	g_dmg[iClient].RGBA[GREEN] = 90;
+	g_dmg[iClient].RGBA[BLUE] = 30;
+	g_dmg[iClient].RGBA[ALPHA] = 255;
+
+	if (AreClientCookiesCached(iClient)) 
+  {
+		char setting[2]; g_haledmg_cookie.Get(iClient, setting, sizeof(setting));
+		g_dmg[iClient].DmgSetting = StringToInt(setting);
+	}
+
   Cookies_OnClientJoin(iClient);
 }
 
@@ -1455,7 +1641,7 @@ public Action Client_OnTakeDamage(int victim, int &attacker, int &inflictor, flo
       }
     }
     
-    //Call damage tags
+    // Call damage tags
     action = TagsDamage_OnTakeDamage(victim, attacker, inflictor, damage, damagetype, weapon, damageForce, damagePosition, damagecustom);
     if (action > finalAction)
       finalAction = action;
@@ -1532,11 +1718,11 @@ public Action Client_OnTakeDamageAlive(int victim, int &attacker, int &inflictor
         finalAction = action;
     }
     
-    //Stop immediately if returning Plugin_Stop
+    // Stop immediately if returning Plugin_Stop
     if (finalAction == Plugin_Stop)
       return finalAction;
     
-    //Call damage tags
+    // Call damage tags
     action = TagsDamage_OnTakeDamageAlive(victim, attacker, inflictor, damage, damagetype, weapon, damageForce, damagePosition, damagecustom);
     if (action > finalAction)
       finalAction = action;
@@ -1546,7 +1732,7 @@ public Action Client_OnTakeDamageAlive(int victim, int &attacker, int &inflictor
     {
       int iBuilder = g_iTelefragBuilder;
       if (iBuilder)
-        g_iPlayerAssistDamage[iBuilder] = RoundToNearest(damage);
+        g_iPlayerAssistDamage[iBuilder] += RoundToNearest(damage);
     }
   }
   

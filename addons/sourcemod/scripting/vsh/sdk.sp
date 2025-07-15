@@ -4,7 +4,6 @@ static Handle g_hHookShouldTransmit;
 static Handle g_hHookGiveNamedItem;
 static Handle g_hHookBallImpact;
 static Handle g_hHookShouldBallTouch;
-static Handle g_hHookFVisible;
 static Handle g_hSDKGetMaxHealth;
 static Handle g_hSDKSendWeaponAnim;
 static Handle g_hSDKPlaySpecificSequence;
@@ -170,11 +169,6 @@ void SDK_Init()
   else
     DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
   
-  iOffset = hGameData.GetOffset("CBaseEntity::FVisible");
-	g_hHookFVisible = DHookCreateFromConf(hGameData, "CBaseEntity::FVisible");
-	if (g_hHookFVisible == null)
-		LogMessage("Failed to create hook: CBaseEntity::FVisible!");
-
   // This hook allows to allow/block medigun heals
   Handle hHook = DHookCreateFromConf(hGameData, "CWeaponMedigun::AllowedToHealTarget");
   if (hHook == null)
@@ -233,12 +227,6 @@ bool SDK_IsGiveNamedItemActive()
   return false;
 }
 
-void SDK_HookGetCaptureValueForPlayer(DHookCallback callback)
-{
-  if (g_hHookGetCaptureValueForPlayer)
-    DHookGamerules(g_hHookGetCaptureValueForPlayer, true, _, callback);
-}
-
 void SDK_HookGetMaxHealth(int iClient)
 {
   if (g_hHookGetMaxHealth)
@@ -249,18 +237,6 @@ void SDK_AlwaysTransmitEntity(int iEntity)
 {
   if (g_hHookShouldTransmit)
     DHookEntity(g_hHookShouldTransmit, true, iEntity);
-}
-
-void SDK_HookBallImpact(int iEntity, DHookCallback callback)
-{
-  if (g_hHookBallImpact)
-    DHookEntity(g_hHookBallImpact, false, iEntity, _, callback);
-}
-
-void SDK_HookBallTouch(int iEntity, DHookCallback callback)
-{
-  if (g_hHookShouldBallTouch)
-    DHookEntity(g_hHookShouldBallTouch, false, iEntity, _, callback);
 }
 
 public MRESReturn Hook_GetMaxHealth(int iClient, Handle hReturn)
@@ -402,28 +378,10 @@ public MRESReturn Hook_CouldHealTarget(int iDispenser, Handle hReturn, Handle hP
   return MRES_Ignored;
 }
 
-void SDK_FVisible(int iEntity)
-{
-	if (g_hHookFVisible != null)
-		DHookEntity(g_hHookFVisible, false, iEntity, _, Hook_FVisible);
-}
-
-MRESReturn Hook_FVisible(int iEntity, DHookReturn ret)
-{
-	// This might fix weapons sometimes not being given out to players
-	ret.Value = true;
-	return MRES_Supercede;
-}
-
 void SDK_SendWeaponAnim(int weapon, int anim)
 {
   if (g_hSDKSendWeaponAnim != null)
     SDKCall(g_hSDKSendWeaponAnim, weapon, anim);
-}
-
-bool SDKCall_PlaySpecificSequence(int iClient, const char[] sAnimationName)
-{
-  return SDKCall(g_hSDKPlaySpecificSequence, iClient, sAnimationName);
 }
 
 int SDK_GetMaxClip(int iWeapon)
@@ -469,17 +427,4 @@ void SDK_RemoveObject(int iClient, int iEntity)
 {
   if(g_hSDKRemoveObject != null)
     SDKCall(g_hSDKRemoveObject, iClient, iEntity);
-}
-
-void SDK_TossJarThink(int iEntity)
-{
-  SDKCall(g_hSDKTossJarThink, iEntity);
-}
-
-void SDK_SetFuseTime(int iEntity, float flTime)
-{
-  if (g_iOffsetFuseTime <= 0)
-    return;
-  
-  SetEntDataFloat(iEntity, g_iOffsetFuseTime, flTime);
 }

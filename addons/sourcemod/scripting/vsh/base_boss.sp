@@ -9,25 +9,25 @@ static Handle g_hClientBossRageMusicTime[MAXPLAYERS];
 
 public void SaxtonHaleBoss_Create(SaxtonHaleBase boss)
 {
-  boss.bSuperRage = false;
+  boss.bSuperRage            = false;
   
-  boss.iBaseHealth = 0;
-  boss.iHealthPerPlayer = 0;
-  boss.iMaxHealth = 0;
-  boss.flHealthExponential = 1.0;
-  boss.flHealthMultiplier = 1.0;
+  boss.iBaseHealth           = 0;
+  boss.iHealthPerPlayer      = 0;
+  boss.iMaxHealth            = 0;
+  boss.flHealthExponential   = 1.0;
+  boss.flHealthMultiplier    = 1.0;
   boss.bHealthPerPlayerAlive = false;
   
-  boss.flSpeed = 370.0;
-  boss.flSpeedMult = 0.07;
-  boss.flMaxRagePercentage = 2.0;
-  boss.iRageDamage = 0;
-  boss.flEnvDamageCap = 200.0;
-  boss.flGlowTime = 0.0;
+  boss.flSpeed               = 370.0;
+  boss.flSpeedMult           = 0.07;
+  boss.flMaxRagePercentage   = 2.0;
+  boss.iRageDamage           = 0;
+  boss.flEnvDamageCap        = 200.0;
+  boss.flGlowTime            = 0.0;
   
-  boss.bMinion = false;
-  boss.bModel = true;
-  boss.nClass = TFClass_Unknown;
+  boss.bMinion               = false;
+  boss.bModel                = true;
+  boss.nClass                = TFClass_Unknown;
 
   g_sClientBossRageMusic[boss.iClient] = "";
   g_flClientBossRageMusicVolume[boss.iClient] = 0.0;
@@ -61,7 +61,7 @@ public void SaxtonHaleBoss_OnThink(SaxtonHaleBase boss)
   bool bGlow = (boss.flGlowTime == -1.0 || boss.flGlowTime >= GetGameTime());
   SetEntProp(boss.iClient, Prop_Send, "m_bGlowEnabled", bGlow);
   
-  //Dont modify his speed during setup time or when taunting
+  // Dont modify his speed during setup time or when taunting
   if (boss.flSpeed >= 0.0 && GameRules_GetRoundState() != RoundState_Preround && !TF2_IsPlayerInCondition(boss.iClient, TFCond_Taunting))
   {
     float flMaxSpeed = boss.flSpeed + (boss.flSpeed*boss.flSpeedMult*(1.0-(float(boss.iHealth)/float(boss.iMaxHealth))));
@@ -363,7 +363,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sunleashed a %sHADOUKEN %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -371,7 +371,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %schanneled the %sHIGH NOON %sand obliterated %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(9001);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -379,7 +379,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sslammed %s%N %sto the moon with a %sGRAND SLAM!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
       damage = float(8000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -387,7 +387,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sperformed a lethal %sFENCING LUNGE %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(8000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -395,7 +395,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sstabbed %s%N %swith an %sARROW!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
       damage = float(5000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -403,7 +403,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sthrew a %sTAUNT GRENADE %sand blew up %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(9001);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -411,7 +411,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %swent full %sBARBARIAN %sand crushed %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -419,7 +419,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sexecuted an %sUBERSLICE %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -427,7 +427,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %ssmashed %s%N %swith a mighty %sENGY SMASH!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
       damage = float(5000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -435,7 +435,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sused the %sENGY ARM %sto obliterate %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype |= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -443,28 +443,29 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %striggered %sARMAGEDDON %sand erased %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype &= ~DMG_CRIT;
+      //damagetype  |= DMG_CRIT;
       action = Plugin_Changed;
     }
   }
 
 
-  //if (GetEntityFlags(boss.iClient) & FL_ONGROUND || TF2_IsUbercharged(boss.iClient))
-  //{
-  //	damagetype |= DMG_PREVENT_PHYSICS_FORCE;
-  //	action = Plugin_Changed;
-  //}
+  if (//GetEntityFlags(boss.iClient) & FL_ONGROUND || 
+  TF2_IsUbercharged(boss.iClient))
+	{
+		damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+		action = Plugin_Changed;
+	}
 
-  //if (inflictor > MaxClients && !boss.bMinion)
-  //{
-  //  char sInflictor[32];
-  //  GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
-  //  if (strcmp(sInflictor, "tf_projectile_sentryrocket") == 0 || strcmp(sInflictor, "obj_sentrygun") == 0)
-  //  {
-  //    damagetype |= DMG_PREVENT_PHYSICS_FORCE;
-  //    action = Plugin_Changed;
-  //  }
-  //}
+	//if (inflictor > MaxClients && !boss.bMinion)
+	//{
+	//	char sInflictor[32];
+	//	GetEdictClassname(inflictor, sInflictor, sizeof(sInflictor));
+	//	if (strcmp(sInflictor, "tf_projectile_sentryrocket") == 0 || strcmp(sInflictor, "obj_sentrygun") == 0)
+	//	{
+	//		damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+	//		action = Plugin_Changed;
+	//	}
+	//}
 
   if (MaxClients < attacker)
   {

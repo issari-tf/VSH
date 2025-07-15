@@ -1,27 +1,261 @@
 static bool g_bSpawnTeamSwitch;
 
+#define EXPERIMENTAL false
+
 void Event_Init()
 {
-  HookEvent("teamplay_round_start", Event_RoundStart, EventHookMode_Pre);
-  HookEvent("arena_round_start", Event_RoundArenaStart);
-  HookEvent("teamplay_round_win", Event_RoundEnd);
-  HookEvent("teamplay_point_captured", Event_PointCaptured);
-  HookEvent("player_spawn", Event_PlayerSpawn);
-  HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
+  HookEvent("teamplay_round_start",       Event_RoundStart, EventHookMode_Pre);
+  HookEvent("arena_round_start",          Event_RoundArenaStart);
+  HookEvent("teamplay_round_win",         Event_RoundEnd);
+  HookEvent("teamplay_point_captured",    Event_PointCaptured);
+  HookEvent("player_spawn",               Event_PlayerSpawn);
+  HookEvent("player_death",               Event_PlayerDeath, EventHookMode_Pre);
   HookEvent("post_inventory_application", Event_PlayerInventoryUpdate);
-  HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
-  HookEvent("deploy_buff_banner", Event_BuffBannerDeployed);
-  HookEvent("player_chargedeployed", Event_UberDeployed);
-  HookEvent("teamplay_broadcast_audio", Event_BroadcastAudio, EventHookMode_Pre);
-  HookEvent("player_builtobject", Event_BuiltObject, EventHookMode_Pre);
-  HookEvent("npc_hurt", Event_ObjectHurt);
-  HookEvent("object_destroyed", Event_ObjectDestroyed, EventHookMode_Pre);
-  HookEvent("player_sapped_object", Event_SappedObject, EventHookMode_Pre);
+  HookEvent("player_hurt",                Event_PlayerHurt, EventHookMode_Pre);
+  HookEvent("deploy_buff_banner",         Event_BuffBannerDeployed);
+  HookEvent("player_chargedeployed",      Event_UberDeployed);
+  HookEvent("teamplay_broadcast_audio",   Event_BroadcastAudio, EventHookMode_Pre);
+  HookEvent("player_builtobject",         Event_BuiltObject, EventHookMode_Pre);
+  HookEvent("npc_hurt",                   Event_ObjectHurt);
+  HookEvent("object_destroyed",           Event_ObjectDestroyed, EventHookMode_Pre);
+  HookEvent("player_sapped_object",       Event_SappedObject, EventHookMode_Pre);
+  HookEvent("player_builtobject",         Event_OnObjectBuilt);
 
   HookUserMessage(GetUserMessageId("PlayerJarated"), Event_Jarated);
 }
 
+
+
+public Action Event_OnObjectBuilt(Event event, const char[] sName, bool bDontBroadcast)
+{
+  // Get Client
+  int iClient = GetClientOfUserId(event.GetInt("userid"));
+  if (!IsClientInGame(iClient) || !AreClientCookiesCached(iClient))
+    return Plugin_Handled;
+  
+  int iObjectEntity = event.GetInt("index");
+
+  if (TF2_GetObjectType(iObjectEntity) == TFObject_Dispenser)
+  {
+    SetEntProp(iObjectEntity, Prop_Send, "m_iMaxHealth", 585);
+  }
+
+  return Plugin_Continue;
+}
+
+
+
+
+/*
 // On Round Start Orbit around player.
+#define THINK_INTERVAL 0.03
+#define ORBIT_SPEED 45.0
+#define ORBIT_HEIGHT 64.0
+#define ORBIT_DEFAULT 0
+
+int g_NewTarget[MAXPLAYERS];
+int g_LastTarget[MAXPLAYERS];
+int g_CurrentTarget[MAXPLAYERS];
+bool g_IsLerping[MAXPLAYERS];
+float g_OrbitAngle[MAXPLAYERS];
+int g_OrbitMode[MAXPLAYERS];
+
+public void OnPostThinkPost(int client)
+{
+  if (!IsClientInGame(client) || !IsClientObserver(client) || IsPlayerAlive(client))
+    return;
+
+  int target = g_NewTarget[client];
+
+  if (!g_IsLerping[client])
+  {
+      g_CurrentTarget[client] = target;
+      g_IsLerping[client] = true;
+      g_OrbitAngle[client] = 0.0;
+
+      SetEntProp(client, Prop_Send, "m_iObserverMode", 6); // OBS_MODE_ROAMING
+  }
+
+  float targetPos[3], camPos[3];
+  GetEntPropVector(g_CurrentTarget[client], Prop_Data, "m_vecOrigin", targetPos);
+  GetClientAbsOrigin(client, camPos);
+
+  g_OrbitAngle[client] += ORBIT_SPEED * THINK_INTERVAL;
+  if (g_OrbitAngle[client] >= 360.0)
+      g_OrbitAngle[client] -= 360.0;
+
+  float yawRad = DegToRad(g_OrbitAngle[client]);
+  float offset[3];
+  offset[0] = Cosine(yawRad) * 300.0;
+  offset[1] = Sine(yawRad) * 300.0;
+  offset[2] = ORBIT_HEIGHT;
+
+  float desiredPos[3];
+  desiredPos[0] = targetPos[0] - offset[0],
+  desiredPos[1] = targetPos[1] - offset[1],
+  desiredPos[2] = targetPos[2] + offset[2]
+
+  float moveDir[3];
+  MakeVectorFromPoints(camPos, desiredPos, moveDir);
+  float moveDist = NormalizeVector(moveDir, moveDir);
+
+  float step = 6.0;
+  if (step > moveDist)
+      step = moveDist;
+
+  if (moveDist < 25.0)
+  {
+      g_LastTarget[client] = g_NewTarget[client];
+      g_IsLerping[client] = false;
+      return;
+  }
+
+  ScaleVector(moveDir, step);
+  AddVectors(camPos, moveDir, camPos);
+
+  float viewAngles[3];
+  MakeVectorFromPoints(camPos, targetPos, moveDir);
+  NormalizeVector(moveDir, moveDir);
+  GetVectorAngles(moveDir, viewAngles);
+
+  TeleportEntity(client, camPos, viewAngles, NULL_VECTOR);
+
+}
+*/
+
+#if EXPERIMENTAL
+static float g_flPlayerInitialPos[MAXPLAYERS][3];
+
+#define THINK_INTERVAL 0.03
+#define ORBIT_SPEED 45.0
+#define ORBIT_HEIGHT 32.0
+#define ORBIT_RADIUS 250.0
+
+int g_NewTarget[MAXPLAYERS + 1];
+int g_LastTarget[MAXPLAYERS + 1];
+int g_CurrentTarget[MAXPLAYERS + 1];
+bool g_IsLerping[MAXPLAYERS + 1];
+float g_OrbitAngle[MAXPLAYERS + 1];
+int g_OrbitMode[MAXPLAYERS + 1]; // Optional if you want multiple orbit styles
+
+public void OnPostThinkPost(int client)
+{
+	if (!IsClientInGame(client))
+		return;
+
+	int target = g_NewTarget[client];
+
+	if (!g_IsLerping[client])
+	{
+		g_CurrentTarget[client] = target;
+		g_IsLerping[client] = true;
+		g_OrbitAngle[client] = 0.0;
+		// DO NOT set observer mode — this is for dead players only
+	}
+
+	float targetPos[3], camPos[3];
+	GetEntPropVector(g_CurrentTarget[client], Prop_Data, "m_vecOrigin", targetPos);
+	GetClientAbsOrigin(client, camPos);
+
+	// Orbit angle update
+	g_OrbitAngle[client] += ORBIT_SPEED * THINK_INTERVAL;
+	if (g_OrbitAngle[client] >= 360.0)
+		g_OrbitAngle[client] -= 360.0;
+
+	// Orbit offset calculation
+	float yawRad = DegToRad(g_OrbitAngle[client]);
+	float offset[3];
+	offset[0] = Cosine(yawRad) * ORBIT_RADIUS;
+	offset[1] = Sine(yawRad) * ORBIT_RADIUS;
+	offset[2] = ORBIT_HEIGHT;
+
+	float desiredPos[3];
+	desiredPos[0] = targetPos[0] - offset[0];
+	desiredPos[1] = targetPos[1] - offset[1];
+	desiredPos[2] = targetPos[2] + offset[2];
+
+	// Smooth lerp movement
+	float moveDir[3];
+	MakeVectorFromPoints(camPos, desiredPos, moveDir);
+	float moveDist = NormalizeVector(moveDir, moveDir);
+
+	float step = 6.0;
+	if (step > moveDist)
+		step = moveDist;
+
+	if (moveDist < 25.0)
+	{
+		g_LastTarget[client] = g_NewTarget[client];
+		g_IsLerping[client] = false;
+		return;
+	}
+
+	// Apply motion
+	ScaleVector(moveDir, step);
+	AddVectors(camPos, moveDir, camPos);
+
+	// Calculate look direction
+	float viewAngles[3];
+	MakeVectorFromPoints(camPos, targetPos, moveDir);
+	NormalizeVector(moveDir, moveDir);
+	GetVectorAngles(moveDir, viewAngles);
+
+	// Move player's camera
+	TeleportEntity(client, camPos, viewAngles, NULL_VECTOR);
+}
+
+
+
+void IntroCutscene()
+{
+  int iBossIndex = -1;
+
+  // Handle Cutscene
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+    if (boss.bValid) {
+      iBossIndex = boss.iClient;
+    }
+  }
+
+  if (iBossIndex == -1)
+    return; // No Boss?
+
+
+  float flBossOrigin[3];
+  GetClientAbsOrigin(iBossIndex, flBossOrigin);
+  
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    if (SaxtonHale_IsValidAttack(iClient) && !IsFakeClient(iClient))
+    {
+      g_LastTarget[iClient] = -1;
+      g_NewTarget[iClient] = iBossIndex;
+      g_CurrentTarget[iClient] = -1;
+      g_IsLerping[iClient] = false;
+      g_OrbitAngle[iClient] = 0.0;
+
+      float vecOrigin[3];
+      GetClientAbsOrigin(iClient, vecOrigin);
+      g_flPlayerInitialPos[iClient] = vecOrigin;
+
+      // No to Bosses
+      if (iClient == iBossIndex)
+        continue;
+
+      // Teleport to Boss so we instantly Orbit
+      TeleportEntity(iClient, flBossOrigin, NULL_VECTOR, NULL_VECTOR);
+
+      TF2_AddCondition(iClient, view_as<int>(77), 10.0); // TF_COND_HALLOWEEN_GHOST_MODE
+      //TF2_AddCondition(iClient, view_as<int>(87), 10.0); // TF_COND_FREEZE_INPUT
+
+      SetEntityMoveType(iClient, MOVETYPE_NOCLIP);
+      SDKHook(iClient, SDKHook_PostThinkPost, OnPostThinkPost);
+    }
+  }
+}
+#endif 
 
 public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcast)
 {
@@ -33,6 +267,8 @@ public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcas
   // Play one round of arena
   if (g_iTotalRoundPlayed <= 0)
     return;
+
+  mp_friendlyfire.BoolValue = false;
   
   // Arena has a very dumb logic, if all players from a team leave the round will end and then restart without reseting the game state...
   // Catch that issue and don't run our logic!
@@ -48,6 +284,7 @@ public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcas
       }
     }
   }
+
   // Both team must have at least one player!
   if (iRed == 0 || iBlu == 0)
   {
@@ -109,6 +346,13 @@ public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcas
   // Only kill in arena
   if (!g_bForceLoad)
     RequestFrame(Frame_InitVshPreRoundTimer, tf_arena_preround_time.IntValue);
+
+#if EXPERIMENTAL
+  // Call Intro
+  IntroCutscene();
+#endif 
+
+
 
   /////// Lazy: implementing the arena code here.
   if (g_bForceLoad)
@@ -305,7 +549,28 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
   g_bRoundStarted = true;
   g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();
 
-  //New round started
+#if EXPERIMENTAL
+  // Handle Cutscene
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    // If not boss and valid attacker
+    if (SaxtonHale_IsValidAttack(iClient) && !SaxtonHale_IsValidBoss(iClient, false))
+    {
+      // place back to initial position and UnHook
+      SetEntityMoveType(iClient, MOVETYPE_WALK);
+      /*
+      SetEntityRenderMode(iClient, RENDER_NORMAL);
+      SetEntityRenderColor(iClient, 255, 255, 255, 255); // Fully opaque
+      */
+      TF2_RemoveCondition(iClient, view_as<int>(77)); // TF_COND_HALLOWEEN_GHOST_MODE
+      TF2_RemoveCondition(iClient, view_as<int>(87));
+      TeleportEntity(iClient, g_flPlayerInitialPos[iClient], NULL_VECTOR, NULL_VECTOR);
+      SDKUnhook(iClient, SDKHook_PostThinkPost, OnPostThinkPost);
+    }
+  }
+#endif 
+
+  // New round started
   for (int iClient = 1; iClient <= MaxClients; iClient++)
   {
     if (!IsClientInGame(iClient)) continue;
@@ -426,7 +691,7 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
     }
     
     if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
-    
+
     // Get client name
     Format(sMessage, sizeof(sMessage), "%s%N became", sMessage, iClient);
     
@@ -452,6 +717,9 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
     // Get Boss name and health
     boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
     Format(sMessage, sizeof(sMessage), "%s %s with %d HP!", sMessage, sBuffer, boss.iMaxHealth);
+
+    // Create Annotation
+    TF2_ShowFollowingAnnotationToAll(iClient, sMessage);
   }
   
   if (!bAllowModifiersColor)
@@ -479,6 +747,9 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
 public void Event_RoundEnd(Event event, const char[] sName, bool bDontBroadcast)
 {
   if (!g_bEnabled) return;
+
+  // Turn on mp_friendlyfire 1
+  mp_friendlyfire.BoolValue = true;
 
   g_hTimerBossMusic = null;
   g_bRoundStarted = false;
@@ -680,6 +951,16 @@ public void Event_PlayerSpawn(Event event, const char[] sName, bool bDontBroadca
   int iClient = GetClientOfUserId(event.GetInt("userid"));
   if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
     return;
+
+  if (!g_bRoundStarted && SaxtonHale_IsValidAttack(iClient) && !SaxtonHale_IsValidBoss(iClient, true))
+  {
+    
+    // Round hasn't started so force them into intro cutscene.
+
+    // Call Intro
+    //IntroCutscene();
+
+  }
   
   if (g_bRoundStarted && SaxtonHale_IsValidAttack(iClient))
   {
@@ -880,7 +1161,20 @@ public Action Event_PlayerDeath(Event event, const char[] sName, bool bDontBroad
     
     if (iLastAlive == 1)
     {
-      //Play last man voiceline
+      for (int iClient = 1; iClient <= MaxClients; iClient++)
+      {
+        // if not boss and player is alive
+        if (!SaxtonHale_IsValidAttack(iClient) && IsPlayerAlive(iClient))
+        {
+          // Lastman standing Annotation
+          char sMessage[128];
+          Format(sMessage, sizeof(sMessage), "%N is the Last Man Standing!", iAttacker);
+          TF2_ShowFollowingAnnotationToAll(iAttacker, sMessage);
+          break;
+        }
+      }
+
+      // Play last man voiceline
       int iBoss = 0;
       if (0 < iAttacker <= MaxClients && IsClientInGame(iAttacker))
       {
