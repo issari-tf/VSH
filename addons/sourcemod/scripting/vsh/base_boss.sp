@@ -9,38 +9,38 @@ static Handle g_hClientBossRageMusicTime[MAXPLAYERS];
 
 public void SaxtonHaleBoss_Create(SaxtonHaleBase boss)
 {
-  boss.bSuperRage = false;
-  
-  boss.iBaseHealth = 0;
-  boss.iHealthPerPlayer = 0;
-  boss.iMaxHealth = 0;
-  boss.flHealthExponential = 1.0;
-  boss.flHealthMultiplier = 1.0;
-  boss.bHealthPerPlayerAlive = false;
-  
-  boss.flSpeed = 370.0;
-  boss.flSpeedMult = 0.07;
-  boss.flMaxRagePercentage = 2.0;
-  boss.iRageDamage = 0;
-  boss.flEnvDamageCap = 200.0;
-  boss.flGlowTime = 0.0;
-  
-  boss.bMinion = false;
-  boss.bModel = true;
-  boss.nClass = TFClass_Unknown;
+	boss.bSuperRage = false;
+	
+	boss.iBaseHealth = 0;
+	boss.iHealthPerPlayer = 0;
+	boss.iMaxHealth = 0;
+	boss.flHealthExponential = 1.0;
+	boss.flHealthMultiplier = 1.0;
+	boss.bHealthPerPlayerAlive = false;
+	
+	boss.flSpeed = 340.0;
+	boss.flSpeedMult = 0.07;
+	boss.flMaxRagePercentage = 2.0;
+	boss.iRageDamage = 0;
+	boss.flEnvDamageCap = 200.0;
+	boss.flGlowTime = 0.0;
+	
+	boss.bMinion = false;
+	boss.bModel = true;
+	boss.nClass = TFClass_Unknown;
 
-  g_sClientBossRageMusic[boss.iClient] = "";
-  g_flClientBossRageMusicVolume[boss.iClient] = 0.0;
-  g_hClientBossRageMusicTime[boss.iClient] = null;
-  
-  if (g_hClientBossModelTimer[boss.iClient] != null)
-    delete g_hClientBossModelTimer[boss.iClient];
-  
-  if (boss.bModel)
-    g_hClientBossModelTimer[boss.iClient] = CreateTimer(0.2, Timer_ApplyBossModel, boss.iClient, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
-  
-  if (boss.nClass != TFClass_Unknown)
-    TF2_SetPlayerClass(boss.iClient, boss.nClass);
+	g_sClientBossRageMusic[boss.iClient] = "";
+	g_flClientBossRageMusicVolume[boss.iClient] = 0.0;
+	g_hClientBossRageMusicTime[boss.iClient] = null;
+	
+	if (g_hClientBossModelTimer[boss.iClient] != null)
+		delete g_hClientBossModelTimer[boss.iClient];
+	
+	if (boss.bModel)
+		g_hClientBossModelTimer[boss.iClient] = CreateTimer(0.2, Timer_ApplyBossModel, boss.iClient, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+	
+	if (boss.nClass != TFClass_Unknown)
+		TF2_SetPlayerClass(boss.iClient, boss.nClass);
 }
 
 public int SaxtonHaleBoss_CalculateMaxHealth(SaxtonHaleBase boss)
@@ -482,6 +482,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
 	//		action = Plugin_Changed;
 	//	}
 	//}
+
 
   if (MaxClients < attacker)
   {
