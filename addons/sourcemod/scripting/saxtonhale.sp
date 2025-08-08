@@ -23,7 +23,7 @@
 
 #define UPDATE_URL                "https://raw.githubusercontent.com/issari-tf/VSH/main/updater.txt"
 
-#define PLUGIN_VERSION          "2.1.1"
+#define PLUGIN_VERSION          "2.1.2"
 #define PLUGIN_VERSION_REVISION "manual"
 
 #if !defined SP_MAX_EXEC_PARAMS
