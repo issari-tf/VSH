@@ -5,6 +5,24 @@
 
 #include <tf2_stocks>
 
+// Color 
+#define TEXT_TAG          "\x079EC34F[VSH]\x01"
+#define TEXT_COLOR        "\x01"
+#define TEXT_DARK         "\x07E17100"
+#define TEXT_POSITIVE     "\x0744FF11"
+#define TEXT_NEGATIVE     "\x07FF4411"
+#define TEXT_NEUTRAL      "\x07EEEEEE"
+#define TEXT_ERROR        "\x07FF2F00"
+
+#define COLOR_DEFAULT     "\x01"
+#define COLOR_OLIVE       "\x079EC34F"
+#define COLOR_YELLOW      "\x07FFFF00"
+#define COLOR_BLUE        "\x0799CCFF" // same as BLU/Counter-Terrorist team color
+#define COLOR_RED         "\x07FF4040" // same as RED/Terrorist team color
+
+#define COLOR_PLAYER      "\x02"
+#define COLOR_TEAM        "\x03"
+
 /**
  * List of TF2 item quality to set boss's weapon
  */

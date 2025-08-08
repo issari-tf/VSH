@@ -1,0 +1,10 @@
+Patch
+{
+	Include	"materials/models/player/engineer/engineer_head_blue.vmt"
+	
+	Insert
+	{
+		"$detailscale"			"2.8"
+		"$detailblendfactor"	"0"
+	}
+}

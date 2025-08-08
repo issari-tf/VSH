@@ -1,224 +1,699 @@
 static bool g_bSpawnTeamSwitch;
 
+#define EXPERIMENTAL false
+
 void Event_Init()
 {
-	HookEvent("teamplay_round_start", Event_RoundStart, EventHookMode_Pre);
-	HookEvent("arena_round_start", Event_RoundArenaStart);
-	HookEvent("teamplay_round_win", Event_RoundEnd);
-	HookEvent("teamplay_point_captured", Event_PointCaptured);
-	HookEvent("player_spawn", Event_PlayerSpawn);
-	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
-	HookEvent("post_inventory_application", Event_PlayerInventoryUpdate);
-	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
-	HookEvent("deploy_buff_banner", Event_BuffBannerDeployed);
-	HookEvent("player_chargedeployed", Event_UberDeployed);
-	HookEvent("teamplay_broadcast_audio", Event_BroadcastAudio, EventHookMode_Pre);
-	HookEvent("player_builtobject", Event_BuiltObject, EventHookMode_Pre);
-	HookEvent("npc_hurt", Event_ObjectHurt);
-	HookEvent("object_destroyed", Event_ObjectDestroyed, EventHookMode_Pre);
-	HookEvent("player_sapped_object", Event_SappedObject, EventHookMode_Pre);
+  HookEvent("teamplay_round_start",       Event_RoundStart, EventHookMode_Pre);
+  HookEvent("arena_round_start",          Event_RoundArenaStart);
+  HookEvent("teamplay_round_win",         Event_RoundEnd);
+  HookEvent("teamplay_point_captured",    Event_PointCaptured);
+  HookEvent("player_spawn",               Event_PlayerSpawn);
+  HookEvent("player_death",               Event_PlayerDeath, EventHookMode_Pre);
+  HookEvent("post_inventory_application", Event_PlayerInventoryUpdate);
+  HookEvent("player_hurt",                Event_PlayerHurt, EventHookMode_Pre);
+  HookEvent("deploy_buff_banner",         Event_BuffBannerDeployed);
+  HookEvent("player_chargedeployed",      Event_UberDeployed);
+  HookEvent("teamplay_broadcast_audio",   Event_BroadcastAudio, EventHookMode_Pre);
+  HookEvent("player_builtobject",         Event_BuiltObject, EventHookMode_Pre);
+  HookEvent("npc_hurt",                   Event_ObjectHurt);
+  HookEvent("object_destroyed",           Event_ObjectDestroyed, EventHookMode_Pre);
+  HookEvent("player_sapped_object",       Event_SappedObject, EventHookMode_Pre);
+  HookEvent("player_builtobject",         Event_OnObjectBuilt);
 
-	HookUserMessage(GetUserMessageId("PlayerJarated"), Event_Jarated);
+  HookUserMessage(GetUserMessageId("PlayerJarated"), Event_Jarated);
 }
+
+
+
+public Action Event_OnObjectBuilt(Event event, const char[] sName, bool bDontBroadcast)
+{
+  // Get Client
+  int iClient = GetClientOfUserId(event.GetInt("userid"));
+  if (!IsClientInGame(iClient) || !AreClientCookiesCached(iClient))
+    return Plugin_Handled;
+  
+  int iObjectEntity = event.GetInt("index");
+
+  if (TF2_GetObjectType(iObjectEntity) == TFObject_Dispenser)
+  {
+    SetEntProp(iObjectEntity, Prop_Send, "m_iMaxHealth", 585);
+  }
+
+  return Plugin_Continue;
+}
+
+
+
+
+/*
+// On Round Start Orbit around player.
+#define THINK_INTERVAL 0.03
+#define ORBIT_SPEED 45.0
+#define ORBIT_HEIGHT 64.0
+#define ORBIT_DEFAULT 0
+
+int g_NewTarget[MAXPLAYERS];
+int g_LastTarget[MAXPLAYERS];
+int g_CurrentTarget[MAXPLAYERS];
+bool g_IsLerping[MAXPLAYERS];
+float g_OrbitAngle[MAXPLAYERS];
+int g_OrbitMode[MAXPLAYERS];
+
+public void OnPostThinkPost(int client)
+{
+  if (!IsClientInGame(client) || !IsClientObserver(client) || IsPlayerAlive(client))
+    return;
+
+  int target = g_NewTarget[client];
+
+  if (!g_IsLerping[client])
+  {
+      g_CurrentTarget[client] = target;
+      g_IsLerping[client] = true;
+      g_OrbitAngle[client] = 0.0;
+
+      SetEntProp(client, Prop_Send, "m_iObserverMode", 6); // OBS_MODE_ROAMING
+  }
+
+  float targetPos[3], camPos[3];
+  GetEntPropVector(g_CurrentTarget[client], Prop_Data, "m_vecOrigin", targetPos);
+  GetClientAbsOrigin(client, camPos);
+
+  g_OrbitAngle[client] += ORBIT_SPEED * THINK_INTERVAL;
+  if (g_OrbitAngle[client] >= 360.0)
+      g_OrbitAngle[client] -= 360.0;
+
+  float yawRad = DegToRad(g_OrbitAngle[client]);
+  float offset[3];
+  offset[0] = Cosine(yawRad) * 300.0;
+  offset[1] = Sine(yawRad) * 300.0;
+  offset[2] = ORBIT_HEIGHT;
+
+  float desiredPos[3];
+  desiredPos[0] = targetPos[0] - offset[0],
+  desiredPos[1] = targetPos[1] - offset[1],
+  desiredPos[2] = targetPos[2] + offset[2]
+
+  float moveDir[3];
+  MakeVectorFromPoints(camPos, desiredPos, moveDir);
+  float moveDist = NormalizeVector(moveDir, moveDir);
+
+  float step = 6.0;
+  if (step > moveDist)
+      step = moveDist;
+
+  if (moveDist < 25.0)
+  {
+      g_LastTarget[client] = g_NewTarget[client];
+      g_IsLerping[client] = false;
+      return;
+  }
+
+  ScaleVector(moveDir, step);
+  AddVectors(camPos, moveDir, camPos);
+
+  float viewAngles[3];
+  MakeVectorFromPoints(camPos, targetPos, moveDir);
+  NormalizeVector(moveDir, moveDir);
+  GetVectorAngles(moveDir, viewAngles);
+
+  TeleportEntity(client, camPos, viewAngles, NULL_VECTOR);
+
+}
+*/
+
+#if EXPERIMENTAL
+static float g_flPlayerInitialPos[MAXPLAYERS][3];
+
+#define THINK_INTERVAL 0.03
+#define ORBIT_SPEED 45.0
+#define ORBIT_HEIGHT 32.0
+#define ORBIT_RADIUS 250.0
+
+int g_NewTarget[MAXPLAYERS + 1];
+int g_LastTarget[MAXPLAYERS + 1];
+int g_CurrentTarget[MAXPLAYERS + 1];
+bool g_IsLerping[MAXPLAYERS + 1];
+float g_OrbitAngle[MAXPLAYERS + 1];
+int g_OrbitMode[MAXPLAYERS + 1]; // Optional if you want multiple orbit styles
+
+public void OnPostThinkPost(int client)
+{
+	if (!IsClientInGame(client))
+		return;
+
+	int target = g_NewTarget[client];
+
+	if (!g_IsLerping[client])
+	{
+		g_CurrentTarget[client] = target;
+		g_IsLerping[client] = true;
+		g_OrbitAngle[client] = 0.0;
+		// DO NOT set observer mode — this is for dead players only
+	}
+
+	float targetPos[3], camPos[3];
+	GetEntPropVector(g_CurrentTarget[client], Prop_Data, "m_vecOrigin", targetPos);
+	GetClientAbsOrigin(client, camPos);
+
+	// Orbit angle update
+	g_OrbitAngle[client] += ORBIT_SPEED * THINK_INTERVAL;
+	if (g_OrbitAngle[client] >= 360.0)
+		g_OrbitAngle[client] -= 360.0;
+
+	// Orbit offset calculation
+	float yawRad = DegToRad(g_OrbitAngle[client]);
+	float offset[3];
+	offset[0] = Cosine(yawRad) * ORBIT_RADIUS;
+	offset[1] = Sine(yawRad) * ORBIT_RADIUS;
+	offset[2] = ORBIT_HEIGHT;
+
+	float desiredPos[3];
+	desiredPos[0] = targetPos[0] - offset[0];
+	desiredPos[1] = targetPos[1] - offset[1];
+	desiredPos[2] = targetPos[2] + offset[2];
+
+	// Smooth lerp movement
+	float moveDir[3];
+	MakeVectorFromPoints(camPos, desiredPos, moveDir);
+	float moveDist = NormalizeVector(moveDir, moveDir);
+
+	float step = 6.0;
+	if (step > moveDist)
+		step = moveDist;
+
+	if (moveDist < 25.0)
+	{
+		g_LastTarget[client] = g_NewTarget[client];
+		g_IsLerping[client] = false;
+		return;
+	}
+
+	// Apply motion
+	ScaleVector(moveDir, step);
+	AddVectors(camPos, moveDir, camPos);
+
+	// Calculate look direction
+	float viewAngles[3];
+	MakeVectorFromPoints(camPos, targetPos, moveDir);
+	NormalizeVector(moveDir, moveDir);
+	GetVectorAngles(moveDir, viewAngles);
+
+	// Move player's camera
+	TeleportEntity(client, camPos, viewAngles, NULL_VECTOR);
+}
+
+
+
+void IntroCutscene()
+{
+  int iBossIndex = -1;
+
+  // Handle Cutscene
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+    if (boss.bValid) {
+      iBossIndex = boss.iClient;
+    }
+  }
+
+  if (iBossIndex == -1)
+    return; // No Boss?
+
+
+  float flBossOrigin[3];
+  GetClientAbsOrigin(iBossIndex, flBossOrigin);
+  
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    if (SaxtonHale_IsValidAttack(iClient) && !IsFakeClient(iClient))
+    {
+      g_LastTarget[iClient] = -1;
+      g_NewTarget[iClient] = iBossIndex;
+      g_CurrentTarget[iClient] = -1;
+      g_IsLerping[iClient] = false;
+      g_OrbitAngle[iClient] = 0.0;
+
+      float vecOrigin[3];
+      GetClientAbsOrigin(iClient, vecOrigin);
+      g_flPlayerInitialPos[iClient] = vecOrigin;
+
+      // No to Bosses
+      if (iClient == iBossIndex)
+        continue;
+
+      // Teleport to Boss so we instantly Orbit
+      TeleportEntity(iClient, flBossOrigin, NULL_VECTOR, NULL_VECTOR);
+
+      TF2_AddCondition(iClient, view_as<int>(77), 10.0); // TF_COND_HALLOWEEN_GHOST_MODE
+      //TF2_AddCondition(iClient, view_as<int>(87), 10.0); // TF_COND_FREEZE_INPUT
+
+      SetEntityMoveType(iClient, MOVETYPE_NOCLIP);
+      SDKHook(iClient, SDKHook_PostThinkPost, OnPostThinkPost);
+    }
+  }
+}
+#endif 
 
 public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcast)
 {
-	g_bSpawnTeamSwitch = false;
-	
-	if (!g_bEnabled || GameRules_GetProp("m_bInWaitingForPlayers"))
-		return;
-	
-	// Start dome stuffs regardless if first round
-	//Dome_RoundStart();
+  g_bSpawnTeamSwitch = false;
+  
+  if (!g_bEnabled || GameRules_GetProp("m_bInWaitingForPlayers"))
+    return;
 
-	// Play one round of arena
-	if (g_iTotalRoundPlayed <= 0)
-		return;
-	
-	// Arena has a very dumb logic, if all players from a team leave the round will end and then restart without reseting the game state...
-	// Catch that issue and don't run our logic!
-	int iRed = 0, iBlu = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		if (IsClientInGame(iClient))
-		{
-			switch (TF2_GetClientTeam(iClient))
-			{
-				case TFTeam_Red: iRed++;
-				case TFTeam_Blue: iBlu++;
-			}
-		}
-	}
-	// Both team must have at least one player!
-	if (iRed == 0 || iBlu == 0)
-	{
-		if (iRed + iBlu >= 2) //If we have atleast 2 players in red or blue, force one person to other team and try again
-		{
-			for (int iClient = 1; iClient <= MaxClients; iClient++)
-			{
-				if (IsClientInGame(iClient))
-				{
-					//Once we found someone whos in red or blue, swap his team
-					TFTeam nTeam = TF2_GetClientTeam(iClient);
-					if (nTeam == TFTeam_Red)
-					{
-						g_bSpawnTeamSwitch = true;
-						TF2_ForceTeamJoin(iClient, TFTeam_Blue);
-						return;
-					}
-					else if (nTeam == TFTeam_Blue)
-					{
-						g_bSpawnTeamSwitch = true;
-						TF2_ForceTeamJoin(iClient, TFTeam_Red);
-						return;
-					}
-				}
-			}
-		}
-		//If we reach that part, either nobody is in server or people in spectator
-		return;
-	}
-	
-	g_hTimerBossMusic = null;
-	g_bRoundStarted = false;
+  // Start dome stuffs regardless if first round
+	Dome_RoundStart();
 
-	// New round started
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		//Clean up any boss(es) that is/are still active
-		SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-		if (boss.bValid)
-			boss.DestroyAllClass();
-		
-		g_iPlayerDamage[iClient] = 0;
-		g_iPlayerAssistDamage[iClient] = 0;
-		g_iClientOwner[iClient] = 0;
-		
-		if (!IsClientInGame(iClient) || TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
-			continue;
-		
-		// Put every players in same team & pick the boss later
-		TF2_ForceTeamJoin(iClient, TFTeam_Attack);
-	}
-	
-	g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();
-	
-	NextBoss_SetNextBoss();	//Set boss
+  // Play one round of arena
+  if (g_iTotalRoundPlayed <= 0)
+    return;
 
-	g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();	//Update amount of attack players
+  mp_friendlyfire.BoolValue = false;
+  
+  // Arena has a very dumb logic, if all players from a team leave the round will end and then restart without reseting the game state...
+  // Catch that issue and don't run our logic!
+  int iRed = 0, iBlu = 0;
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    if (IsClientInGame(iClient))
+    {
+      switch (TF2_GetClientTeam(iClient))
+      {
+        case TFTeam_Red: iRed++;
+        case TFTeam_Blue: iBlu++;
+      }
+    }
+  }
 
-	RequestFrame(Frame_InitVshPreRoundTimer, tf_arena_preround_time.IntValue);
+  // Both team must have at least one player!
+  if (iRed == 0 || iBlu == 0)
+  {
+    if (iRed + iBlu >= 2) //If we have atleast 2 players in red or blue, force one person to other team and try again
+    {
+      for (int iClient = 1; iClient <= MaxClients; iClient++)
+      {
+        if (IsClientInGame(iClient))
+        {
+          // Once we found someone whos in red or blue, swap his team
+          TFTeam nTeam = TF2_GetClientTeam(iClient);
+          if (nTeam == TFTeam_Red)
+          {
+            g_bSpawnTeamSwitch = true;
+            TF2_ForceTeamJoin(iClient, TFTeam_Blue);
+            return;
+          }
+          else if (nTeam == TFTeam_Blue)
+          {
+            g_bSpawnTeamSwitch = true;
+            TF2_ForceTeamJoin(iClient, TFTeam_Red);
+            return;
+          }
+        }
+      }
+    }
+    // If we reach that part, either nobody is in server or people in spectator
+    return;
+  }
+  
+  g_hTimerBossMusic = null;
+  g_bRoundStarted = false;
+
+  // New round started
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    //Clean up any boss(es) that is/are still active
+    SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+    if (boss.bValid)
+      boss.DestroyAllClass();
+    
+    g_iPlayerDamage[iClient] = 0;
+    g_iPlayerAssistDamage[iClient] = 0;
+    g_iClientOwner[iClient] = 0;
+    
+    if (!IsClientInGame(iClient) || TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
+      continue;
+    
+    // Put every players in same team & pick the boss later
+    TF2_ForceTeamJoin(iClient, TFTeam_Attack);
+  }
+  
+  g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();
+  
+  NextBoss_SetNextBoss();	//Set boss
+
+  g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();	//Update amount of attack players
+
+  // Only kill in arena
+  if (!g_bForceLoad)
+    RequestFrame(Frame_InitVshPreRoundTimer, tf_arena_preround_time.IntValue);
+
+#if EXPERIMENTAL
+  // Call Intro
+  IntroCutscene();
+#endif 
+
+
+
+  /////// Lazy: implementing the arena code here.
+  if (g_bForceLoad)
+  {
+    if (!g_bEnabled || GameRules_GetProp("m_bInWaitingForPlayers")) return;
+
+    //Play one round of arena, and force unlock/enable dome
+    if (g_iTotalRoundPlayed <= 0)
+    {
+      GameRules_SetPropFloat("m_flCapturePointEnableTime", 0.0);
+      return;
+    }
+
+    g_bRoundStarted = true;
+    g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();
+
+    //New round started
+    for (int iClient = 1; iClient <= MaxClients; iClient++)
+    {
+      if (!IsClientInGame(iClient)) continue;
+
+      g_iPlayerDamage[iClient] = 0;
+      g_iPlayerAssistDamage[iClient] = 0;
+      ClassLimit_SetMainClass(iClient, TFClass_Unknown);
+      
+      if (!SaxtonHale_IsValidAttack(iClient)) continue;
+
+      //Display weapon balances in chat
+      TFClassType nClass = TF2_GetPlayerClass(iClient);
+
+      ClassLimit_SetMainClass(iClient, nClass);
+
+      // Create Panel.
+      Panel panel = new Panel();
+      panel.SetTitle("VSH Weapon Info");
+
+      for (int iSlot = 0; iSlot <= WeaponSlot_InvisWatch; iSlot++)
+      {
+        int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+        
+        if (IsValidEdict(iWeapon))
+        {
+          int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+          for (int i = 0; i <= 1; i++)
+          {					
+            char sDesp[255];
+            
+            // Desp for all weapon in class slot
+            if (i == 0)
+              g_ConfigClass[nClass][iSlot].GetDesp(sDesp, sizeof(sDesp));
+            // Desp for specific index
+            else if (i == 1)
+              g_ConfigIndex.GetDesp(iIndex, sDesp, sizeof(sDesp));
+
+            if (!StrEmpty(sDesp))
+            {
+              panel.DrawItem(sDesp);
+            }
+          }
+        }
+      }
+      panel.DrawItem("Exit");
+      panel.Send(iClient, PanelHandler, 10);
+      delete panel;
+    }
+    
+    //Play boss music if there is one
+    if (g_ConfigConvar.LookupInt("vsh_music_enable"))
+    {
+      for (int iBoss = 1; iBoss <= MaxClients; iBoss++)
+      {
+        if (SaxtonHale_IsValidBoss(iBoss, false))
+        {
+          SaxtonHaleBase boss = SaxtonHaleBase(iBoss);
+          
+          float flMusicTime;
+          boss.CallFunction("GetMusicInfo", g_sBossMusic, sizeof(g_sBossMusic), flMusicTime);
+          if (!StrEmpty(g_sBossMusic))
+          {
+            // Prefix the filepath with #, so it's considered as music by the engine, allowing people to adjust its volume through the music volume slider
+            if (g_sBossMusic[0] != '#')
+              Format(g_sBossMusic, sizeof(g_sBossMusic), "#%s", g_sBossMusic);
+            
+            for (int i = 1; i <= MaxClients; i++)
+              if (IsClientInGame(i) && Preferences_Get(i, VSHPreferences_Music))
+                EmitSoundToClient(i, g_sBossMusic, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
+            
+            if (flMusicTime > 0.0)
+              g_hTimerBossMusic = CreateTimer(flMusicTime, Timer_Music, boss, TIMER_REPEAT);
+            
+            break;
+          }
+        }
+      }
+    }
+    
+    // Refresh boss health from player count
+    for (int iClient = 1; iClient <= MaxClients; iClient++)
+    {
+      SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+      if (boss.bValid)
+      {
+        int iHealth = boss.CallFunction("CalculateMaxHealth");
+        boss.iMaxHealth = iHealth;
+        boss.iHealth = iHealth;
+      }
+    }
+    
+    char sMessage[2048], sBuffer[256], sPreviousModifiers[256];
+    int iColor[4] = {255, 255, 255, 255};
+    bool bAllowModifiersColor = true;
+    
+    // Loop through each bosses to display
+    for (int iClient = 1; iClient <= MaxClients; iClient++)
+    {
+      SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+      if (IsClientInGame(iClient) && !boss.bValid && !boss.bMinion) 
+      {
+        //TF2_RespawnPlayer(iClient);
+        TF2_RegeneratePlayer(iClient);
+        continue;
+      }
+      
+      if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
+      
+      // Get client name
+      Format(sMessage, sizeof(sMessage), "%s%N became", sMessage, iClient);
+      
+      // Display text who is what boss and modifiers with health
+      if (boss.bModifiers)
+      {
+        boss.CallFunction("GetModifiersName", sBuffer, sizeof(sBuffer));
+        Format(sMessage, sizeof(sMessage), "%s %s", sMessage, sBuffer);
+        
+        if (!StrEmpty(sPreviousModifiers) && !StrEqual(sPreviousModifiers, sBuffer))
+        {
+          // More than 1 different modifiers, dont allow colors
+          bAllowModifiersColor = false;
+        }
+        else
+        {
+          boss.CallFunction("GetRenderColor", iColor);
+        }
+        
+        Format(sPreviousModifiers, sizeof(sPreviousModifiers), sBuffer);
+      }
+      
+      // Get Boss name and health
+      boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
+      Format(sMessage, sizeof(sMessage), "%s %s with %d HP!", sMessage, sBuffer, boss.iMaxHealth);
+    }
+    
+    if (!bAllowModifiersColor)
+      for (int iRGB = 0; iRGB < sizeof(iColor); iRGB++)
+        iColor[iRGB] = 255;
+    
+    float flHUD[2];
+    flHUD[0] = -1.0;
+    flHUD[1] = 0.3;
+    
+    float flFade[2];
+    flFade[0] = 0.4;
+    flFade[1] = 0.4;
+
+    for (int i = 1; i <= MaxClients; i++)
+      if (IsClientInGame(i))
+        Hud_Display(i, CHANNEL_INTRO, sMessage, flHUD, 5.0, iColor, 0, 0.0, flFade);
+
+    Dome_RoundArenaStart();
+
+    // Display chat on who is next boss
+    int iNextPlayer = Queue_GetPlayerFromRank(1);
+    if (0 < iNextPlayer <= MaxClients && IsClientInGame(iNextPlayer))
+      PrintToChat(iNextPlayer, "%s================%s\nYou are about to be the next boss!\n%s================", TEXT_DARK, TEXT_COLOR, TEXT_DARK);
+
+  }
+}
+
+// Empty
+public int PanelHandler(Menu menu, MenuAction action, int client, int param)
+{
+  return 0;
 }
 
 public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled || GameRules_GetProp("m_bInWaitingForPlayers")) return;
+  if (!g_bEnabled || GameRules_GetProp("m_bInWaitingForPlayers")) return;
 
-	//Play one round of arena, and force unlock/enable dome
-	if (g_iTotalRoundPlayed <= 0)
-	{
-		GameRules_SetPropFloat("m_flCapturePointEnableTime", 0.0);
-		return;
-	}
+  //Play one round of arena, and force unlock/enable dome
+  if (g_iTotalRoundPlayed <= 0)
+  {
+    GameRules_SetPropFloat("m_flCapturePointEnableTime", 0.0);
+    return;
+  }
 
-	g_bRoundStarted = true;
-	g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();
+  g_bRoundStarted = true;
+  g_iTotalAttackCount = SaxtonHale_GetAliveAttackPlayers();
 
-	//New round started
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		if (!IsClientInGame(iClient)) continue;
+#if EXPERIMENTAL
+  // Handle Cutscene
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    // If not boss and valid attacker
+    if (SaxtonHale_IsValidAttack(iClient) && !SaxtonHale_IsValidBoss(iClient, false))
+    {
+      // place back to initial position and UnHook
+      SetEntityMoveType(iClient, MOVETYPE_WALK);
+      /*
+      SetEntityRenderMode(iClient, RENDER_NORMAL);
+      SetEntityRenderColor(iClient, 255, 255, 255, 255); // Fully opaque
+      */
+      TF2_RemoveCondition(iClient, view_as<int>(77)); // TF_COND_HALLOWEEN_GHOST_MODE
+      TF2_RemoveCondition(iClient, view_as<int>(87));
+      TeleportEntity(iClient, g_flPlayerInitialPos[iClient], NULL_VECTOR, NULL_VECTOR);
+      SDKUnhook(iClient, SDKHook_PostThinkPost, OnPostThinkPost);
+    }
+  }
+#endif 
 
-		g_iPlayerDamage[iClient] = 0;
-		g_iPlayerAssistDamage[iClient] = 0;
-		ClassLimit_SetMainClass(iClient, TFClass_Unknown);
-		
-		if (!SaxtonHale_IsValidAttack(iClient)) continue;
+  // New round started
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    if (!IsClientInGame(iClient)) continue;
 
-		//Display weapon balances in chat
-		TFClassType nClass = TF2_GetPlayerClass(iClient);
 
-		ClassLimit_SetMainClass(iClient, nClass);
+       int iHideHUD = GetEntProp(iClient, Prop_Send, "m_iHideHUD");
 
-		for (int iSlot = 0; iSlot <= WeaponSlot_InvisWatch; iSlot++)
-		{
-			int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
-			
-			if (IsValidEdict(iWeapon))
-			{
-				int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-				for (int i = 0; i <= 1; i++)
-				{					
-					char sDesp[255];
-					
-					// Desp for all weapon in class slot
-					if (i == 0)
-						g_ConfigClass[nClass][iSlot].GetDesp(sDesp, sizeof(sDesp));
-					// Desp for specific index
-					else if (i == 1)
-						g_ConfigIndex.GetDesp(iIndex, sDesp, sizeof(sDesp));
+    // Ensure Health HUD is visible
+    //if (iHideHUD & HIDEHUD_HEALTH)
+    //    iHideHUD &= ~HIDEHUD_HEALTH;
 
-					if (!StrEmpty(sDesp))
-					{
-						//Color tags
-						for (int iColor = 0; iColor < sizeof(g_strColorTag); iColor++)
-							ReplaceString(sDesp, sizeof(sDesp), g_strColorTag[iColor], g_strColorCode[iColor]);
-	
-						//Bug with single % not showing, use %% to have % appeared once
-						ReplaceString(sDesp, sizeof(sDesp), "%", "%%");
-	
-						//Add VSH color at start
-						Format(sDesp, sizeof(sDesp), "%s%s", TEXT_COLOR, sDesp);
-						PrintToChat(iClient, sDesp);
-					}
-				}
-			}
-		}
-	}
-	
-	//Play boss music if there is one
-	if (g_ConfigConvar.LookupInt("vsh_music_enable"))
-	{
-		for (int iBoss = 1; iBoss <= MaxClients; iBoss++)
-		{
-			if (SaxtonHale_IsValidBoss(iBoss, false))
-			{
-				SaxtonHaleBase boss = SaxtonHaleBase(iBoss);
-				
-				float flMusicTime;
-				boss.CallFunction("GetMusicInfo", g_sBossMusic, sizeof(g_sBossMusic), flMusicTime);
-				if (!StrEmpty(g_sBossMusic))
-				{
-					// Prefix the filepath with #, so it's considered as music by the engine, allowing people to adjust its volume through the music volume slider
-					if (g_sBossMusic[0] != '#')
-						Format(g_sBossMusic, sizeof(g_sBossMusic), "#%s", g_sBossMusic);
-					
-					for (int i = 1; i <= MaxClients; i++)
-						if (IsClientInGame(i) && Preferences_Get(i, VSHPreferences_Music))
-							EmitSoundToClient(i, g_sBossMusic, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
-					
-					if (flMusicTime > 0.0)
-						g_hTimerBossMusic = CreateTimer(flMusicTime, Timer_Music, boss, TIMER_REPEAT);
-					
-					break;
-				}
-			}
-		}
-	}
-	
-	//Refresh boss health from player count
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-		if (boss.bValid)
-		{
-			int iHealth = boss.CallFunction("CalculateMaxHealth");
-			boss.iMaxHealth = iHealth;
-			boss.iHealth = iHealth;
-		}
-	}
-	
-	char sMessage[2048], sBuffer[256], sPreviousModifiers[256];
+    // Ensure Match Status is hidden
+    //if (!(iHideHUD & HIDEHUD_MATCH_STATUS))
+    iHideHUD ^= HIDEHUD_MATCH_STATUS;
+    SetEntProp(iClient, Prop_Send, "m_iHideHUD", iHideHUD);
+
+
+    g_iPlayerDamage[iClient] = 0;
+    g_iPlayerAssistDamage[iClient] = 0;
+    ClassLimit_SetMainClass(iClient, TFClass_Unknown);
+    
+    if (!SaxtonHale_IsValidAttack(iClient)) continue;
+
+    //Display weapon balances in chat
+    TFClassType nClass = TF2_GetPlayerClass(iClient);
+
+    ClassLimit_SetMainClass(iClient, nClass);
+
+    // Create Panel.
+    Panel panel = new Panel();
+    panel.SetTitle("VSH Weapon Info");
+
+    for (int iSlot = 0; iSlot <= WeaponSlot_InvisWatch; iSlot++)
+    {
+      int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+      
+      if (IsValidEdict(iWeapon))
+      {
+        int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+        for (int i = 0; i <= 1; i++)
+        {					
+          char sDesp[255];
+          
+          // Desp for all weapon in class slot
+          if (i == 0)
+            g_ConfigClass[nClass][iSlot].GetDesp(sDesp, sizeof(sDesp));
+          // Desp for specific index
+          else if (i == 1)
+            g_ConfigIndex.GetDesp(iIndex, sDesp, sizeof(sDesp));
+
+          if (!StrEmpty(sDesp))
+          {
+            //char exit_test[64];
+            //Format(exit_test, sizeof(exit_test), "%T", "Exit", base.index);
+            panel.DrawItem(sDesp);
+
+            //Color tags
+            //for (int iColor = 0; iColor < sizeof(g_strColorTag); iColor++)
+            //	ReplaceString(sDesp, sizeof(sDesp), g_strColorTag[iColor], g_strColorCode[iColor]);
+  
+            //Bug with single % not showing, use %% to have % appeared once
+            //ReplaceString(sDesp, sizeof(sDesp), "%", "%%");
+  
+            //Add VSH color at start
+            //Format(sDesp, sizeof(sDesp), "%s%s", TEXT_COLOR, sDesp);
+            //PrintToChat(iClient, sDesp);
+          }
+        }
+      }
+    }
+    panel.DrawItem("Exit");
+    panel.Send(iClient, PanelHandler, 10);
+    delete panel;
+  }
+  
+  //Play boss music if there is one
+  if (g_ConfigConvar.LookupInt("vsh_music_enable"))
+  {
+    for (int iBoss = 1; iBoss <= MaxClients; iBoss++)
+    {
+      if (SaxtonHale_IsValidBoss(iBoss, false))
+      {
+        SaxtonHaleBase boss = SaxtonHaleBase(iBoss);
+        
+        float flMusicTime;
+        boss.CallFunction("GetMusicInfo", g_sBossMusic, sizeof(g_sBossMusic), flMusicTime);
+        if (!StrEmpty(g_sBossMusic))
+        {
+          // Prefix the filepath with #, so it's considered as music by the engine, allowing people to adjust its volume through the music volume slider
+          if (g_sBossMusic[0] != '#')
+            Format(g_sBossMusic, sizeof(g_sBossMusic), "#%s", g_sBossMusic);
+          
+          for (int i = 1; i <= MaxClients; i++)
+            if (IsClientInGame(i) && Preferences_Get(i, VSHPreferences_Music))
+              EmitSoundToClient(i, g_sBossMusic, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
+          
+          if (flMusicTime > 0.0)
+            g_hTimerBossMusic = CreateTimer(flMusicTime, Timer_Music, boss, TIMER_REPEAT);
+          
+          break;
+        }
+      }
+    }
+  }
+  
+  // Refresh boss health from player count
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+    if (boss.bValid)
+    {
+      int iHealth = boss.CallFunction("CalculateMaxHealth");
+      boss.iMaxHealth = iHealth;
+      boss.iHealth = iHealth;
+    }
+  }
+  
+  char sMessage[2048], sBuffer[256], sPreviousModifiers[256];
 	int iColor[4] = {255, 255, 255, 255};
 	bool bAllowModifiersColor = true;
 	
@@ -256,671 +731,727 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
 		boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
 		Format(sMessage, sizeof(sMessage), "%s %s with %d HP!", sMessage, sBuffer, boss.iMaxHealth);
 	}
-	
-	if (!bAllowModifiersColor)
-		for (int iRGB = 0; iRGB < sizeof(iColor); iRGB++)
-			iColor[iRGB] = 255;
-	
-	float flHUD[2];
-	flHUD[0] = -1.0;
-	flHUD[1] = 0.3;
-	
-	float flFade[2];
-	flFade[0] = 0.4;
-	flFade[1] = 0.4;
 
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsClientInGame(i))
-			Hud_Display(i, CHANNEL_INTRO, sMessage, flHUD, 5.0, iColor, 0, 0.0, flFade);
 
-	//Dome_RoundArenaStart();
+  if (!bAllowModifiersColor)
+    for (int iRGB = 0; iRGB < sizeof(iColor); iRGB++)
+      iColor[iRGB] = 255;
+  
+  float flHUD[2];
+  flHUD[0] = -1.0;
+  flHUD[1] = 0.3;
+  
+  float flFade[2];
+  flFade[0] = 0.4;
+  flFade[1] = 0.4;
 
-	//Display chat on who is next boss
-	int iNextPlayer = Queue_GetPlayerFromRank(1);
-	if (0 < iNextPlayer <= MaxClients && IsClientInGame(iNextPlayer))
-		PrintToChat(iNextPlayer, "%s================%s\nYou are about to be the next boss!\n%s================", TEXT_DARK, TEXT_COLOR, TEXT_DARK);
+  for (int i = 1; i <= MaxClients; i++)
+    if (IsClientInGame(i))
+      Hud_Display(i, CHANNEL_INTRO, sMessage, flHUD, 5.0, iColor, 0, 0.0, flFade);
+
+  // Display chat on who is next boss
+  int iNextPlayer = Queue_GetPlayerFromRank(1);
+  if (0 < iNextPlayer <= MaxClients && IsClientInGame(iNextPlayer))
+    PrintToChat(iNextPlayer, "%s================%s\nYou are about to be the next boss!\n%s================", TEXT_DARK, TEXT_COLOR, TEXT_DARK);
 }
 
 public void Event_RoundEnd(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
+  if (!g_bEnabled) return;
 
-	g_hTimerBossMusic = null;
-	g_bRoundStarted = false;
+  // Turn on mp_friendlyfire 1
+  mp_friendlyfire.BoolValue = true;
 
-	TFTeam iWinningTeam = view_as<TFTeam>(event.GetInt("team"));
+  g_hTimerBossMusic = null;
+  g_bRoundStarted = false;
 
-	g_iTotalRoundPlayed++;
-	if (g_iTotalRoundPlayed <= 1)
-	{
-		if (g_iTotalRoundPlayed == 1)//Arena round ended disable arena logic!
-			Plugin_Cvars(true);
-		return;
-	}
+  TFTeam iWinningTeam = view_as<TFTeam>(event.GetInt("team"));
 
-	int iMainBoss = GetMainBoss();
-	
-	if (iWinningTeam == TFTeam_Boss)
-	{
-		if (0 < iMainBoss <= MaxClients && IsClientInGame(iMainBoss))//Play our win line
-		{
-			SaxtonHaleBase boss = SaxtonHaleBase(iMainBoss);
-			if (boss.bValid)
-			{
-				char sSound[PLATFORM_MAX_PATH];
-				boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Win);
-				if (!StrEmpty(sSound))
-					BroadcastSoundToTeam(TFTeam_Spectator, sSound);
+  g_iTotalRoundPlayed++;
+  if (g_iTotalRoundPlayed <= 1)
+  {
+    if (g_iTotalRoundPlayed == 1)//Arena round ended disable arena logic!
+      Plugin_Cvars(true);
+    return;
+  }
 
-				Forward_BossWin(TFTeam_Boss);
-			}
-		}
-	}
-	else
-	{
-		if (0 < iMainBoss <= MaxClients && IsClientInGame(iMainBoss))//Play our lose line
-		{
-			SaxtonHaleBase boss = SaxtonHaleBase(iMainBoss);
-			if (boss.bValid)
-			{
-				char sSound[PLATFORM_MAX_PATH];
-				boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Lose);
-				if (!StrEmpty(sSound))
-					BroadcastSoundToTeam(TFTeam_Spectator, sSound);
+  int iMainBoss = GetMainBoss();
+  
+  if (iWinningTeam == TFTeam_Boss)
+  {
+    if (0 < iMainBoss <= MaxClients && IsClientInGame(iMainBoss))//Play our win line
+    {
+      SaxtonHaleBase boss = SaxtonHaleBase(iMainBoss);
+      if (boss.bValid)
+      {
+        char sSound[PLATFORM_MAX_PATH];
+        boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Win);
+        if (!StrEmpty(sSound))
+          BroadcastSoundToTeam(TFTeam_Spectator, sSound);
 
-				Forward_BossLose(TFTeam_Boss);
-			}
-		}
-	}
+        Forward_BossWin(TFTeam_Boss);
+      }
+    }
+  }
+  else
+  {
+    if (0 < iMainBoss <= MaxClients && IsClientInGame(iMainBoss))//Play our lose line
+    {
+      SaxtonHaleBase boss = SaxtonHaleBase(iMainBoss);
+      if (boss.bValid)
+      {
+        char sSound[PLATFORM_MAX_PATH];
+        boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Lose);
+        if (!StrEmpty(sSound))
+          BroadcastSoundToTeam(TFTeam_Spectator, sSound);
 
-	ArrayList aPlayersList = new ArrayList();
-	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		if (IsClientInGame(iClient))
-		{
-			//End music
-			if (!StrEmpty(g_sBossMusic))
-				StopSound(iClient, SNDCHAN_STATIC, g_sBossMusic);
-			
-			if (SaxtonHale_IsValidBoss(iClient, false))
-			{
-				//Clean up now to avoid stray particles
-				ClearBossEffects(iClient);
-			}
-			else if (GetClientTeam(iClient) > 1)
-			{				
-				aPlayersList.Push(iClient);
-				
-				if (!Client_HasFlag(iClient, ClientFlags_Punishment))
-				{
-					int iAddQueue = 10 + RoundToFloor(float(SaxtonHale_GetScore(iClient)) / 300.0);
-					if (iAddQueue > 20)
-						iAddQueue = 20;
-					if (iAddQueue < 10)
-						iAddQueue = 10;
-					Queue_AddPlayerPoints(iClient, iAddQueue);
-				}
-			}
-		}
-	}
-	
-	g_sBossMusic = "";
+        Forward_BossLose(TFTeam_Boss);
+      }
+    }
+  }
 
-	char sPlayerNames[3][70];
-	sPlayerNames[0] = "----";
-	sPlayerNames[1] = "----";
-	sPlayerNames[2] = "----";
+  ArrayList aPlayersList = new ArrayList();
+  
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    if (IsClientInGame(iClient))
+    {
+      //End music
+      if (!StrEmpty(g_sBossMusic))
+        StopSound(iClient, SNDCHAN_STATIC, g_sBossMusic);
+      
+      if (SaxtonHale_IsValidBoss(iClient, false))
+      {
+        //Clean up now to avoid stray particles
+        ClearBossEffects(iClient);
+      }
+      else if (GetClientTeam(iClient) > 1)
+      {				
+        aPlayersList.Push(iClient);
+        
+        if (!Client_HasFlag(iClient, ClientFlags_Punishment))
+        {
+          int iAddQueue = 10 + RoundToFloor(float(SaxtonHale_GetScore(iClient)) / 300.0);
+          if (iAddQueue > 20)
+            iAddQueue = 20;
+          if (iAddQueue < 10)
+            iAddQueue = 10;
+          Queue_AddPlayerPoints(iClient, iAddQueue);
+        }
+      }
+    }
+  }
+  
+  g_sBossMusic = "";
 
-	for (int iRank = 0; iRank < 3; iRank++)
-	{
-		int iBestPlayerIndex = -1;
-		int iLength = aPlayersList.Length;
-		int iBestScore = 0;
+  char sPlayerNames[3][70];
+  sPlayerNames[0] = "----";
+  sPlayerNames[1] = "----";
+  sPlayerNames[2] = "----";
 
-		for (int i = 0; i < iLength; i++)
-		{
-			int iPlayer = aPlayersList.Get(i);
-			int iPlayerScore = SaxtonHale_GetScore(iPlayer);
-			if (iPlayerScore > iBestScore)
-			{
-				iBestScore = iPlayerScore;
-				iBestPlayerIndex = i;
-			}
-		}
+  for (int iRank = 0; iRank < 3; iRank++)
+  {
+    int iBestPlayerIndex = -1;
+    int iLength = aPlayersList.Length;
+    int iBestScore = 0;
 
-		if (iBestPlayerIndex != -1)
-		{
-			char sBufferName[59];
-			int iPlayer = aPlayersList.Get(iBestPlayerIndex);
+    for (int i = 0; i < iLength; i++)
+    {
+      int iPlayer = aPlayersList.Get(i);
+      int iPlayerScore = SaxtonHale_GetScore(iPlayer);
+      if (iPlayerScore > iBestScore)
+      {
+        iBestScore = iPlayerScore;
+        iBestPlayerIndex = i;
+      }
+    }
 
-			GetClientName(iPlayer, sBufferName, sizeof(sBufferName));
-			Format(sPlayerNames[iRank], sizeof(sPlayerNames[]), "%s - %i", sBufferName, SaxtonHale_GetScore(iPlayer));
-			aPlayersList.Erase(iBestPlayerIndex);
-		}
-	}
+    if (iBestPlayerIndex != -1)
+    {
+      char sBufferName[59];
+      int iPlayer = aPlayersList.Get(iBestPlayerIndex);
 
-	delete aPlayersList;
+      GetClientName(iPlayer, sBufferName, sizeof(sBufferName));
+      Format(sPlayerNames[iRank], sizeof(sPlayerNames[]), "%s - %i", sBufferName, SaxtonHale_GetScore(iPlayer));
+      aPlayersList.Erase(iBestPlayerIndex);
+    }
+  }
 
-	float flHUD[2];
-	flHUD[0] = -1.0;
-	flHUD[1] = 0.3;
+  delete aPlayersList;
 
-	char sMessage[2048], sBuffer[256];
-	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-		if (boss.bValid && !boss.bMinion)
-		{
-			if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
-			Format(sMessage, sizeof(sMessage), "%s%N as", sMessage, iClient);
-			
-			//Get Modifiers name
-			if (boss.bModifiers)
-			{
-				boss.CallFunction("GetModifiersName", sBuffer, sizeof(sBuffer));
-				Format(sMessage, sizeof(sMessage), "%s %s", sMessage, sBuffer);
-			}
-			
-			//Get Boss name
-			boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
-			
-			//Format with health
-			if (IsPlayerAlive(iClient) && boss.iHealth > 0)
-				Format(sMessage, sizeof(sMessage), "%s %s had %d of %d HP left", sMessage, sBuffer, boss.iHealth, boss.iMaxHealth);
-			else
-				Format(sMessage, sizeof(sMessage), "%s %s died with %d max HP", sMessage, sBuffer, boss.iMaxHealth);
-		}
-	}
+  float flHUD[2];
+  flHUD[0] = -1.0;
+  flHUD[1] = 0.3;
 
-	Format(sMessage, sizeof(sMessage), "%s\n1) %s \n2) %s \n3) %s ", sMessage, sPlayerNames[0], sPlayerNames[1], sPlayerNames[2]);
+  char sMessage[2048], sBuffer[256];
+  
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+    if (boss.bValid && !boss.bMinion)
+    {
+      if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
+      Format(sMessage, sizeof(sMessage), "%s%N as", sMessage, iClient);
+      
+      //Get Modifiers name
+      if (boss.bModifiers)
+      {
+        boss.CallFunction("GetModifiersName", sBuffer, sizeof(sBuffer));
+        Format(sMessage, sizeof(sMessage), "%s %s", sMessage, sBuffer);
+      }
+      
+      //Get Boss name
+      boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
+      
+      //Format with health
+      if (IsPlayerAlive(iClient) && boss.iHealth > 0)
+        Format(sMessage, sizeof(sMessage), "%s %s had %d of %d HP left", sMessage, sBuffer, boss.iHealth, boss.iMaxHealth);
+      else
+        Format(sMessage, sizeof(sMessage), "%s %s died with %d max HP", sMessage, sBuffer, boss.iMaxHealth);
+    }
+  }
 
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		if (IsClientInGame(iClient))
-		{
-			Format(sBuffer, sizeof(sBuffer), sMessage);
+  Format(sMessage, sizeof(sMessage), "%s\n1) %s \n2) %s \n3) %s ", sMessage, sPlayerNames[0], sPlayerNames[1], sPlayerNames[2]);
 
-			if (!SaxtonHale_IsValidBoss(iClient, false))
-				Format(sBuffer, sizeof(sBuffer), "%s\nYour damage: %d | Your assist: %d", sBuffer, g_iPlayerDamage[iClient], g_iPlayerAssistDamage[iClient]);
+  for (int iClient = 1; iClient <= MaxClients; iClient++)
+  {
+    if (IsClientInGame(iClient))
+    {
+      Format(sBuffer, sizeof(sBuffer), sMessage);
 
-			Hud_Display(iClient, CHANNEL_INTRO, sBuffer, flHUD, 10.0);
-		}
-	}	
+      if (!SaxtonHale_IsValidBoss(iClient, false))
+        Format(sBuffer, sizeof(sBuffer), "%s\nYour damage: %d | Your assist: %d", sBuffer, g_iPlayerDamage[iClient], g_iPlayerAssistDamage[iClient]);
+
+      Hud_Display(iClient, CHANNEL_INTRO, sBuffer, flHUD, 10.0);
+    }
+  }	
 }
 
 public void Event_PointCaptured(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
-	
-	//TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
-	//Dome_SetTeam(nTeam);
+	if (!g_bEnabled)
+		return;
+
+	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
+	if (nTeam == TFTeam_Red)
+	{
+		int deadPlayers[MAXPLAYERS];
+		int deadCount = 0;
+
+		// Collect dead players
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		{
+			if (IsClientInGame(iClient) && !IsPlayerAlive(iClient))
+			{
+				deadPlayers[deadCount++] = iClient;
+			}
+		}
+
+		// Shuffle
+		for (int i = deadCount - 1; i > 0; i--)
+		{
+			int j = GetRandomInt(0, i);
+			int temp = deadPlayers[i];
+			deadPlayers[i] = deadPlayers[j];
+			deadPlayers[j] = temp;
+		}
+
+		// Respawn up to 3
+		//int toRespawn = deadCount < 3 ? deadCount : 3;
+		for (int i = 0; i < 3; i++)
+		{
+			TF2_RespawnPlayer(deadPlayers[i]);
+		}
+	}
+
+	Dome_SetTeam(TFTeam_Unassigned);
 }
 
 public void Event_BroadcastAudio(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
-	if (g_iTotalRoundPlayed <= 0) return;
+  if (!g_bEnabled) return;
+  if (g_iTotalRoundPlayed <= 0) return;
 
-	char strSound[50];
-	event.GetString("sound", strSound, sizeof(strSound));
+  char strSound[50];
+  event.GetString("sound", strSound, sizeof(strSound));
 
-	if (strcmp(strSound, "Game.TeamWin3") == 0
-	|| strcmp(strSound, "Game.YourTeamLost") == 0
-	|| strcmp(strSound, "Game.YourTeamWon") == 0
-	|| strcmp(strSound, "Announcer.AM_RoundStartRandom") == 0
-	|| strcmp(strSound, "Game.Stalemate") == 0)
-		SetEventBroadcast(event, true);
+  if (strcmp(strSound, "Game.TeamWin3") == 0
+  || strcmp(strSound, "Game.YourTeamLost") == 0
+  || strcmp(strSound, "Game.YourTeamWon") == 0
+  || strcmp(strSound, "Announcer.AM_RoundStartRandom") == 0
+  || strcmp(strSound, "Game.Stalemate") == 0)
+    SetEventBroadcast(event, true);
 }
 
 public void Event_PlayerSpawn(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
-	if (g_iTotalRoundPlayed <= 0) return;
-	
-	if (g_bSpawnTeamSwitch)
-		return;
-	
-	int iClient = GetClientOfUserId(event.GetInt("userid"));
-	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
-		return;
-	
-	if (g_bRoundStarted && SaxtonHale_IsValidAttack(iClient))
-	{
-		//Latespawn... get outa here
-		ForcePlayerSuicide(iClient);
-		return;
-	}
-	
-	bool bRespawn;
-	TFClassType iOldClass = view_as<TFClassType>(event.GetInt("class"));
-	TFClassType iNewClass = ClassLimit_GetNewClass(iClient);
-	
-	if (iOldClass != iNewClass && iNewClass != TFClass_Unknown)
-	{
-		TF2_SetPlayerClass(iClient, iNewClass);
-		bRespawn = true;
-	}
-	
-	SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-	
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (SaxtonHale_IsValidBoss(i, false))
-		{
-			if (!boss.bValid && TF2_GetClientTeam(iClient) != TFTeam_Attack)
-			{
-				TF2_ChangeClientTeam(iClient, TFTeam_Attack);
-				bRespawn = true;
-			}
-			
-			break;
-		}
-	}
-	
-	if (bRespawn)
-	{
-		TF2_RespawnPlayer(iClient);
-		return;
-	}
-	
-	// Player spawned, if they are a boss, call their spawn function
-	if (boss.bValid)
-		boss.CallFunction("OnSpawn");
-	
-	UpdateClientGlowEnt(iClient);
+  if (!g_bEnabled) return;
+  if (g_iTotalRoundPlayed <= 0) return;
+  
+  if (g_bSpawnTeamSwitch)
+    return;
+  
+  int iClient = GetClientOfUserId(event.GetInt("userid"));
+  if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
+    return;
+
+  if (!g_bRoundStarted && SaxtonHale_IsValidAttack(iClient) && !SaxtonHale_IsValidBoss(iClient, true))
+  {
+    
+    // Round hasn't started so force them into intro cutscene.
+
+    // Call Intro
+    //IntroCutscene();
+
+  }
+  
+  if (g_bRoundStarted && SaxtonHale_IsValidAttack(iClient))
+  {
+    // Respawn -> LateSpawn.
+    PrintToChatAll("%s[VSH] %s%N %sjust %sRESPAWNED%s!", COLOR_OLIVE, COLOR_RED, iClient, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT);  
+  }
+  
+  bool bRespawn;
+  TFClassType iOldClass = view_as<TFClassType>(event.GetInt("class"));
+  TFClassType iNewClass = ClassLimit_GetNewClass(iClient);
+  
+  if (iOldClass != iNewClass && iNewClass != TFClass_Unknown)
+  {
+    TF2_SetPlayerClass(iClient, iNewClass);
+    bRespawn = true;
+  }
+  
+  SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+  
+  for (int i = 1; i <= MaxClients; i++)
+  {
+    if (SaxtonHale_IsValidBoss(i, false))
+    {
+      if (!boss.bValid && TF2_GetClientTeam(iClient) != TFTeam_Attack)
+      {
+        TF2_ChangeClientTeam(iClient, TFTeam_Attack);
+        bRespawn = true;
+      }
+      
+      break;
+    }
+  }
+  
+  if (bRespawn)
+  {
+    TF2_RespawnPlayer(iClient);
+    return;
+  }
+  
+  // Player spawned, if they are a boss, call their spawn function
+  if (boss.bValid)
+    boss.CallFunction("OnSpawn");
+  
+  UpdateClientGlowEnt(iClient);
 }
 
 public Action Event_BuiltObject(Event event, const char[] sName, bool bDontBroadcast)
 {	
-	if (!g_bEnabled) return Plugin_Continue;
-	if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
+  if (!g_bEnabled) return Plugin_Continue;
+  if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
 
-	int iClient = GetClientOfUserId(event.GetInt("userid"));
+  int iClient = GetClientOfUserId(event.GetInt("userid"));
 
-	SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-	if (boss.bValid)
-		return boss.CallFunction("OnBuildObject", event);
-	
-	return Plugin_Continue;
+  SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+  if (boss.bValid)
+    return boss.CallFunction("OnBuildObject", event);
+  
+  return Plugin_Continue;
 }
 
 public Action Event_ObjectHurt(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
-	
-	int iBuilding = event.GetInt("entindex");
-	char sClassname[256];
-	GetEntityClassname(iBuilding, sClassname, sizeof(sClassname));
-	if (StrContains(sClassname, "obj_") != 0)
-		return Plugin_Continue;
-	
-	int iAttacker = GetClientOfUserId(event.GetInt("attacker_player"));
-	if (0 < iAttacker <= MaxClients && TF2_GetClientTeam(iAttacker) == TFTeam_Attack)
-	{
-		g_iPlayerAssistDamage[iAttacker] += event.GetInt("damageamount");
-	}
-	else if (iAttacker == 0 && event.GetInt("weaponid") == 0)
-	{
-		//Assuming this is sapper damage, not sure if any other method can trigger this
-		int iSapper = TF2_GetSapper(iBuilding);
-		if (iSapper != INVALID_ENT_REFERENCE)
-		{
-			iAttacker = GetEntPropEnt(iSapper, Prop_Send, "m_hBuilder");
-			if (0 < iAttacker <= MaxClients && IsClientInGame(iAttacker) && TF2_GetClientTeam(iAttacker) == TFTeam_Attack)
-				g_iPlayerAssistDamage[iAttacker] += event.GetInt("damageamount");
-		}
-	}
-	
-	return Plugin_Continue;
+  if (!g_bEnabled) return Plugin_Continue;
+  if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
+  
+  int iBuilding = event.GetInt("entindex");
+  char sClassname[256];
+  GetEntityClassname(iBuilding, sClassname, sizeof(sClassname));
+  if (StrContains(sClassname, "obj_") != 0)
+    return Plugin_Continue;
+  
+  int iAttacker = GetClientOfUserId(event.GetInt("attacker_player"));
+  if (0 < iAttacker <= MaxClients && TF2_GetClientTeam(iAttacker) == TFTeam_Attack)
+  {
+    g_iPlayerAssistDamage[iAttacker] += event.GetInt("damageamount");
+  }
+  else if (iAttacker == 0 && event.GetInt("weaponid") == 0)
+  {
+    //Assuming this is sapper damage, not sure if any other method can trigger this
+    int iSapper = TF2_GetSapper(iBuilding);
+    if (iSapper != INVALID_ENT_REFERENCE)
+    {
+      iAttacker = GetEntPropEnt(iSapper, Prop_Send, "m_hBuilder");
+      if (0 < iAttacker <= MaxClients && IsClientInGame(iAttacker) && TF2_GetClientTeam(iAttacker) == TFTeam_Attack)
+        g_iPlayerAssistDamage[iAttacker] += event.GetInt("damageamount");
+    }
+  }
+  
+  return Plugin_Continue;
 }
 
 public Action Event_ObjectDestroyed(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
+  if (!g_bEnabled) return Plugin_Continue;
+  if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
 
-	int iClient = GetClientOfUserId(event.GetInt("attacker"));
+  int iClient = GetClientOfUserId(event.GetInt("attacker"));
 
-	SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-	if (boss.bValid)
-	{
-		char sSound[PLATFORM_MAX_PATH];
-		boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_KillBuilding);
-		if (!StrEmpty(sSound))
-			EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-		
-		return boss.CallFunction("OnDestroyObject", event);
-	}
-	
-	return Plugin_Continue;
+  SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+  if (boss.bValid)
+  {
+    char sSound[PLATFORM_MAX_PATH];
+    boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_KillBuilding);
+    if (!StrEmpty(sSound))
+      EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+    
+    return boss.CallFunction("OnDestroyObject", event);
+  }
+  
+  return Plugin_Continue;
 }
 
 public Action Event_SappedObject(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
+  if (!g_bEnabled) return Plugin_Continue;
+  if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
 
-	int iVictim = GetClientOfUserId(event.GetInt("ownerid"));
+  int iVictim = GetClientOfUserId(event.GetInt("ownerid"));
 
-	SaxtonHaleBase boss = SaxtonHaleBase(iVictim);
-	if (boss.bValid)
-		return boss.CallFunction("OnObjectSapped", event);
-	
-	return Plugin_Continue;
+  SaxtonHaleBase boss = SaxtonHaleBase(iVictim);
+  if (boss.bValid)
+    return boss.CallFunction("OnObjectSapped", event);
+  
+  return Plugin_Continue;
 }
 
 public Action Event_PlayerDeath(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
+  if (!g_bEnabled) return Plugin_Continue;
+  if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
 
-	int iVictim = GetClientOfUserId(event.GetInt("userid"));
-	int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
+  int iVictim = GetClientOfUserId(event.GetInt("userid"));
+  int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
 
-	int iVictimTeam = GetClientTeam(iVictim);
-	if (iVictimTeam <= 1) return Plugin_Continue;
+  int iVictimTeam = GetClientTeam(iVictim);
+  if (iVictimTeam <= 1) return Plugin_Continue;
 
-	SaxtonHaleBase bossVictim = SaxtonHaleBase(iVictim);
-	SaxtonHaleBase bossAttacker = SaxtonHaleBase(iAttacker);
+  SaxtonHaleBase bossVictim = SaxtonHaleBase(iVictim);
+  SaxtonHaleBase bossAttacker = SaxtonHaleBase(iAttacker);
 
-	bool bDeadRinger = (event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER) != 0;
+  bool bDeadRinger = (event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER) != 0;
 
-	int iSentry = TF2_GetBuilding(iVictim, TFObject_Sentry);
-	if (iSentry > MaxClients)
-	{
-		SetVariantInt(999999);
-		AcceptEntityInput(iSentry, "RemoveHealth");
-	}
-	
-	if (bossVictim.bValid)
-	{
-		//Call boss death
-		bossVictim.CallFunction("OnDeath", event);
-		CheckForceAttackWin(iVictim);
-		
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
-		{
-			if (iVictim != iClient && SaxtonHale_IsValidBoss(iClient, false))
-			{
-				char sSound[PLATFORM_MAX_PATH];
-				if (IsPlayerAlive(iClient))	//There another main boss alive, call death sound
-					bossVictim.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Death);
-				
-				if (StrEmpty(sSound))	//Otherwise just use lose sound
-					bossVictim.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Lose);
-				
-				if (!StrEmpty(sSound))
-					BroadcastSoundToTeam(TFTeam_Spectator, sSound);
-				
-				break;
-			}
-		}
-	}
-	
-	if (0 < iAttacker <= MaxClients && iVictim != iAttacker && IsClientInGame(iAttacker))
-	{	
-		//Call boss kill
-		if (bossAttacker.bValid)
-			bossAttacker.CallFunction("OnPlayerKilled", event, iVictim);
-	}
-	
-	if (g_bRoundStarted && !bDeadRinger && SaxtonHale_IsValidAttack(iVictim))
-	{
-		//Victim who died is still "alive" during this event, so we subtract by 1 to not count victim
-		int iLastAlive = SaxtonHale_GetAliveAttackPlayers() - 1;
-		
-		if (iLastAlive >= 2)
-		{
-			//Play boss kill voiceline
-			if ((GetRandomInt(0, 1)) && 0 < iAttacker <= MaxClients && bossAttacker.bValid)
-			{
-				char sSound[PLATFORM_MAX_PATH];
-				bossAttacker.CallFunction("GetSoundKill", sSound, sizeof(sSound), TF2_GetPlayerClass(iVictim));
-				if (!StrEmpty(sSound))
-					EmitSoundToAll(sSound, iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-			}
-		}
-		
-		if (iLastAlive == 1)
-		{
-			//Play last man voiceline
-			int iBoss = 0;
-			if (0 < iAttacker <= MaxClients && IsClientInGame(iAttacker))
-			{
-				iBoss = iAttacker;
-			}
-			else
-			{
-				for (int iClient = 1; iClient <= MaxClients; iClient++)
-				{
-					if (SaxtonHale_IsValidBoss(iClient, false) && IsPlayerAlive(iClient))
-					{
-						iBoss = iClient;
-						break;
-					}
-				}
-			}
-			
-			SaxtonHaleBase boss = SaxtonHaleBase(iBoss);
-			if (iBoss != 0 && boss.bValid)
-			{
-				char sSound[PLATFORM_MAX_PATH];
-				boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Lastman);
-				if (!StrEmpty(sSound))
-					BroadcastSoundToTeam(TFTeam_Spectator, sSound);
-			}
-		}
+  int iSentry = TF2_GetBuilding(iVictim, TFObject_Sentry);
+  if (iSentry > MaxClients)
+  {
+    SetVariantInt(999999);
+    AcceptEntityInput(iSentry, "RemoveHealth");
+  }
+  
+  if (bossVictim.bValid)
+  {
+    //Call boss death
+    bossVictim.CallFunction("OnDeath", event);
+    CheckForceAttackWin(iVictim);
+    
+    for (int iClient = 1; iClient <= MaxClients; iClient++)
+    {
+      if (iVictim != iClient && SaxtonHale_IsValidBoss(iClient, false))
+      {
+        char sSound[PLATFORM_MAX_PATH];
+        if (IsPlayerAlive(iClient))	//There another main boss alive, call death sound
+          bossVictim.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Death);
+        
+        if (StrEmpty(sSound))	//Otherwise just use lose sound
+          bossVictim.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Lose);
+        
+        if (!StrEmpty(sSound))
+          BroadcastSoundToTeam(TFTeam_Spectator, sSound);
+        
+        break;
+      }
+    }
+  }
+  
+  if (0 < iAttacker <= MaxClients && iVictim != iAttacker && IsClientInGame(iAttacker))
+  {	
+    //Call boss kill
+    if (bossAttacker.bValid)
+      bossAttacker.CallFunction("OnPlayerKilled", event, iVictim);
+  }
+  
+  if (g_bRoundStarted && !bDeadRinger && SaxtonHale_IsValidAttack(iVictim))
+  {
+    //Victim who died is still "alive" during this event, so we subtract by 1 to not count victim
+    int iLastAlive = SaxtonHale_GetAliveAttackPlayers() - 1;
+    
+    if (iLastAlive >= 2)
+    {
+      //Play boss kill voiceline
+      if ((GetRandomInt(0, 1)) && 0 < iAttacker <= MaxClients && bossAttacker.bValid)
+      {
+        char sSound[PLATFORM_MAX_PATH];
+        bossAttacker.CallFunction("GetSoundKill", sSound, sizeof(sSound), TF2_GetPlayerClass(iVictim));
+        if (!StrEmpty(sSound))
+          EmitSoundToAll(sSound, iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+      }
+    }
+    
+    if (iLastAlive == 1)
+    {
+      for (int iClient = 1; iClient <= MaxClients; iClient++)
+      {
+        // if not boss and player is alive
+        if (SaxtonHale_IsValidAttack(iClient) && IsPlayerAlive(iClient))
+        {
+          // Lastman standing Annotation
+          char sMessage[128];
+          Format(sMessage, sizeof(sMessage), "%N is the Last Man Standing!", iAttacker);
+          TF2_ShowFollowingAnnotationToAll(iAttacker, sMessage);
+          break;
+        }
+      }
 
-		if (iLastAlive == 0)
-		{
-			//Kill any minions that are still alive
-			for (int i = 1; i <= MaxClients; i++)
-				if (IsClientInGame(i) && IsPlayerAlive(i) && i != iVictim && GetClientTeam(i) == iVictimTeam)
-					SDKHooks_TakeDamage(i, 0, i, 99999.0);
-		}
-	}
-	
-	if (g_bRoundStarted && !bDeadRinger)
-		g_iClientOwner[iVictim] = 0;
-	
-	return Plugin_Changed;
+      // Play last man voiceline
+      int iBoss = 0;
+      if (0 < iAttacker <= MaxClients && IsClientInGame(iAttacker))
+      {
+        iBoss = iAttacker;
+      }
+      else
+      {
+        for (int iClient = 1; iClient <= MaxClients; iClient++)
+        {
+          if (SaxtonHale_IsValidBoss(iClient, false) && IsPlayerAlive(iClient))
+          {
+            iBoss = iClient;
+            break;
+          }
+        }
+      }
+      
+      SaxtonHaleBase boss = SaxtonHaleBase(iBoss);
+      if (iBoss != 0 && boss.bValid)
+      {
+        char sSound[PLATFORM_MAX_PATH];
+        boss.CallFunction("GetSound", sSound, sizeof(sSound), VSHSound_Lastman);
+        if (!StrEmpty(sSound))
+          BroadcastSoundToTeam(TFTeam_Spectator, sSound);
+      }
+    }
+
+    if (iLastAlive == 0)
+    {
+      //Kill any minions that are still alive
+      for (int i = 1; i <= MaxClients; i++)
+        if (IsClientInGame(i) && IsPlayerAlive(i) && i != iVictim && GetClientTeam(i) == iVictimTeam)
+          SDKHooks_TakeDamage(i, 0, i, 99999.0);
+    }
+  }
+  
+  if (g_bRoundStarted && !bDeadRinger)
+    g_iClientOwner[iVictim] = 0;
+  
+  return Plugin_Changed;
 }
 
 public void Event_PlayerInventoryUpdate(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
+  if (!g_bEnabled) return;
 
-	int iClient = GetClientOfUserId(event.GetInt("userid"));
-	if (GetClientTeam(iClient) <= 1) return;
-	
-	TF2_CheckClientWeapons(iClient);
-	
-	if (SaxtonHale_IsValidAttack(iClient))
-	{
-		/*Balance specific weapons*/
-		TFClassType nClass = TF2_GetPlayerClass(iClient);
-		for (int iSlot = 0; iSlot <= WeaponSlot_InvisWatch; iSlot++)
-		{
-			int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
-			
-			if (iWeapon <= MaxClients)
-			{
-				//No weapon in this slot, may be removed from GiveNamedItem hook
-				//Generate default weapon index for class and slot
-				int iIndex = g_iDefaultWeaponIndex[view_as<int>(nClass)][iSlot];
-				if (iIndex >= 0)
-					iWeapon = TF2_CreateAndEquipWeapon(iClient, iIndex, .bAttrib = true);
-			}
-			
-			if (iWeapon > MaxClients)
-			{
-				// Balance weapons, not including 1st round
-				if (g_iTotalRoundPlayed > 0)
-				{
-					int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-					
-					for (int i = 0; i <= 1; i++)
-					{
-						char sAttrib[255], atts[32][32];
-						
-						// Give attribs in class slot and specific index
-						switch (i)
-						{
-							case 0: g_ConfigClass[nClass][iSlot].GetAttrib(sAttrib, sizeof(sAttrib));
-							case 1: g_ConfigIndex.GetAttrib(iIndex, sAttrib, sizeof(sAttrib));
-						}
-						
-						int count = ExplodeString(sAttrib, " ; ", atts, 32, 32);
-						if (count > 1)
-						{
-							for (int j = 0; j < count; j+= 2)
-								TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+  int iClient = GetClientOfUserId(event.GetInt("userid"));
+  if (GetClientTeam(iClient) <= 1) return;
+  
+  TF2_CheckClientWeapons(iClient);
+  
+  if (SaxtonHale_IsValidAttack(iClient))
+  {
+    /*Balance specific weapons*/
+    TFClassType nClass = TF2_GetPlayerClass(iClient);
+    for (int iSlot = 0; iSlot <= WeaponSlot_InvisWatch; iSlot++)
+    {
+      int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+      
+      if (iWeapon <= MaxClients)
+      {
+        //No weapon in this slot, may be removed from GiveNamedItem hook
+        //Generate default weapon index for class and slot
+        int iIndex = g_iDefaultWeaponIndex[view_as<int>(nClass)][iSlot];
+        if (iIndex >= 0)
+          iWeapon = TF2_CreateAndEquipWeapon(iClient, iIndex, .bAttrib = true);
+      }
+      
+      if (iWeapon > MaxClients)
+      {
+        // Balance weapons, not including 1st round
+        if (g_iTotalRoundPlayed > 0)
+        {
+          int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+          
+          for (int i = 0; i <= 1; i++)
+          {
+            char sAttrib[255], atts[32][32];
+            
+            // Give attribs in class slot and specific index
+            switch (i)
+            {
+              case 0: g_ConfigClass[nClass][iSlot].GetAttrib(sAttrib, sizeof(sAttrib));
+              case 1: g_ConfigIndex.GetAttrib(iIndex, sAttrib, sizeof(sAttrib));
+            }
+            
+            int count = ExplodeString(sAttrib, " ; ", atts, 32, 32);
+            if (count > 1)
+            {
+              for (int j = 0; j < count; j+= 2)
+                TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[j]), StringToFloat(atts[j+1]));
 
-							TF2Attrib_ClearCache(iWeapon);
-						}
-						
-						// Set clip size to weapon in both class slot and specific index
-						int iClip = -1;
-						switch (i)
-						{
-							case 0: iClip = g_ConfigClass[nClass][iSlot].GetClip();
-							case 1: iClip = g_ConfigIndex.GetClip(iIndex);
-						}
-						
-						if (iClip > -1)
-							SetEntProp(iWeapon, Prop_Send, "m_iClip1", iClip);
-					}
-				}
-			}
-		}
-	}
+              TF2Attrib_ClearCache(iWeapon);
+            }
+            
+            // Set clip size to weapon in both class slot and specific index
+            int iClip = -1;
+            switch (i)
+            {
+              case 0: iClip = g_ConfigClass[nClass][iSlot].GetClip();
+              case 1: iClip = g_ConfigIndex.GetClip(iIndex);
+            }
+            
+            if (iClip > -1)
+              SetEntProp(iWeapon, Prop_Send, "m_iClip1", iClip);
+          }
+        }
+      }
+    }
+  }
 
-	if (g_iTotalRoundPlayed <= 0) return;
-	
-	Tags_ResetClient(iClient);
-	TagsCore_RefreshClient(iClient);
-	
-	if (SaxtonHale_IsValidAttack(iClient))
-		TagsCore_CallAll(iClient, TagsCall_Spawn);
+  if (g_iTotalRoundPlayed <= 0) return;
+  
+  Tags_ResetClient(iClient);
+  TagsCore_RefreshClient(iClient);
+  
+  if (SaxtonHale_IsValidAttack(iClient))
+    TagsCore_CallAll(iClient, TagsCall_Spawn);
 }
 
 public void Event_PlayerHurt(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
-	if (g_iTotalRoundPlayed <= 0) return;
+  if (!g_bEnabled) return;
+  if (g_iTotalRoundPlayed <= 0) return;
 
-	int iClient = GetClientOfUserId(event.GetInt("userid"));
-	if (GetClientTeam(iClient) <= 1) return;
-	
-	SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-	if (boss.bValid)
-	{
-		int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
-		int iDamageAmount = event.GetInt("damageamount");
-		
-		if (0 < iAttacker <= MaxClients && IsClientInGame(iAttacker) && iClient != iAttacker && TF2_GetClientTeam(iAttacker) == TFTeam_Attack)
-		{
-			boss.CallFunction("AddRage", iDamageAmount);
-			
-			//Damage if main boss, assist damage if minion
-			if (!boss.bMinion)
-				g_iPlayerDamage[iAttacker] += iDamageAmount;
-			else
-				g_iPlayerAssistDamage[iAttacker] += iDamageAmount;
-			
-			int iAttackTeam = GetClientTeam(iAttacker);
+  int iClient = GetClientOfUserId(event.GetInt("userid"));
+  if (GetClientTeam(iClient) <= 1) return;
+  
+  SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+  if (boss.bValid)
+  {
+    int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
+    int iDamageAmount = event.GetInt("damageamount");
+    
+    if (0 < iAttacker <= MaxClients && IsClientInGame(iAttacker) && iClient != iAttacker && TF2_GetClientTeam(iAttacker) == TFTeam_Attack)
+    {
+      boss.CallFunction("AddRage", iDamageAmount);
+      
+      //Damage if main boss, assist damage if minion
+      if (!boss.bMinion)
+        g_iPlayerDamage[iAttacker] += iDamageAmount;
+      else
+        g_iPlayerAssistDamage[iAttacker] += iDamageAmount;
+      
+      int iAttackTeam = GetClientTeam(iAttacker);
 
-			//Award assist damage if Client has a owner
-			int iOwner = g_iClientOwner[iAttacker];
-			if (0 < iOwner <= MaxClients && IsClientInGame(iOwner))
-				g_iPlayerAssistDamage[iOwner] += iDamageAmount;
+      //Award assist damage if Client has a owner
+      int iOwner = g_iClientOwner[iAttacker];
+      if (0 < iOwner <= MaxClients && IsClientInGame(iOwner))
+        g_iPlayerAssistDamage[iOwner] += iDamageAmount;
 
-			for (int i = 1; i <= MaxClients; i++)
-			{
-				if (IsClientInGame(i) && GetClientTeam(i) == iAttackTeam && i != iAttacker)
-				{
-					if (g_bClientAreaOfEffect[i][iAttacker])
-					{
-						//Under area of effect
-						g_iPlayerAssistDamage[i] += iDamageAmount;
-						continue;
-					}
-					
-					int iSecondaryWep = GetPlayerWeaponSlot(i, WeaponSlot_Secondary);
-					char weaponSecondaryClass[32];
-					if (iSecondaryWep >= 0)
-						GetEdictClassname(iSecondaryWep, weaponSecondaryClass, sizeof(weaponSecondaryClass));
+      for (int i = 1; i <= MaxClients; i++)
+      {
+        if (IsClientInGame(i) && GetClientTeam(i) == iAttackTeam && i != iAttacker)
+        {
+          if (g_bClientAreaOfEffect[i][iAttacker])
+          {
+            //Under area of effect
+            g_iPlayerAssistDamage[i] += iDamageAmount;
+            continue;
+          }
+          
+          int iSecondaryWep = GetPlayerWeaponSlot(i, WeaponSlot_Secondary);
+          char weaponSecondaryClass[32];
+          if (iSecondaryWep >= 0)
+            GetEdictClassname(iSecondaryWep, weaponSecondaryClass, sizeof(weaponSecondaryClass));
 
-					//Award damage assit to healers
-					if (strcmp(weaponSecondaryClass, "tf_weapon_medigun") != 0)
-						continue;
-					
-					int iHealTarget = GetEntPropEnt(iSecondaryWep, Prop_Send, "m_hHealingTarget");
-					if (iHealTarget == iAttacker)
-					{
-						g_iPlayerAssistDamage[i] += iDamageAmount;
-					}
-					else if (iHealTarget > MaxClients)	//Buildings
-					{
-						char sClassname[64];
-						GetEdictClassname(iHealTarget, sClassname, sizeof(sClassname));
-						//Check if healer is healing sentry gun, with attacker as builder
-						if (strcmp(sClassname, "obj_sentrygun") == 0 && GetEntPropEnt(iHealTarget, Prop_Send, "m_hBuilder") == iAttacker)
-						{
-							g_iPlayerAssistDamage[i] += iDamageAmount;
-						}
-					}
-				}
-			}
-		}
-	}
+          //Award damage assit to healers
+          if (strcmp(weaponSecondaryClass, "tf_weapon_medigun") != 0)
+            continue;
+          
+          int iHealTarget = GetEntPropEnt(iSecondaryWep, Prop_Send, "m_hHealingTarget");
+          if (iHealTarget == iAttacker)
+          {
+            g_iPlayerAssistDamage[i] += iDamageAmount;
+          }
+          else if (iHealTarget > MaxClients)	//Buildings
+          {
+            char sClassname[64];
+            GetEdictClassname(iHealTarget, sClassname, sizeof(sClassname));
+            //Check if healer is healing sentry gun, with attacker as builder
+            if (strcmp(sClassname, "obj_sentrygun") == 0 && GetEntPropEnt(iHealTarget, Prop_Send, "m_hBuilder") == iAttacker)
+            {
+              g_iPlayerAssistDamage[i] += iDamageAmount;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 public void Event_BuffBannerDeployed(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
-	if (g_iTotalRoundPlayed <= 0) return;
+  if (!g_bEnabled) return;
+  if (g_iTotalRoundPlayed <= 0) return;
 
-	int iClient = GetClientOfUserId(event.GetInt("buff_owner"));
-	if (GetClientTeam(iClient) <= 1 || SaxtonHale_IsValidBoss(iClient)) return;
+  int iClient = GetClientOfUserId(event.GetInt("buff_owner"));
+  if (GetClientTeam(iClient) <= 1 || SaxtonHale_IsValidBoss(iClient)) return;
 
-	TagsCore_CallAll(iClient, TagsCall_Banner);
+  TagsCore_CallAll(iClient, TagsCall_Banner);
 }
 
 public void Event_UberDeployed(Event event, const char[] sName, bool bDontBroadcast)
 {
-	if (!g_bEnabled) return;
-	if (g_iTotalRoundPlayed <= 0) return;
+  if (!g_bEnabled) return;
+  if (g_iTotalRoundPlayed <= 0) return;
 
-	int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (GetClientTeam(iClient) <= 1 || SaxtonHale_IsValidBoss(iClient)) return;
+  int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
+  if (GetClientTeam(iClient) <= 1 || SaxtonHale_IsValidBoss(iClient)) return;
 
-	TagsCore_CallAll(iClient, TagsCall_Uber);
+  TagsCore_CallAll(iClient, TagsCall_Uber);
 }
 
 public Action Event_Jarated(UserMsg msg_id, Handle msg, const int[] players, int playersNum, bool reliable, bool init)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
+  if (!g_bEnabled) return Plugin_Continue;
+  if (g_iTotalRoundPlayed <= 0) return Plugin_Continue;
 
-	int iThrower = BfReadByte(msg);
-	int iVictim = BfReadByte(msg);
-	
-	if (GetClientTeam(iThrower) <= 1 || SaxtonHale_IsValidBoss(iThrower)) return Plugin_Continue;
-	
-	SaxtonHaleBase bossVictim = SaxtonHaleBase(iVictim);
-	if (GetClientTeam(iVictim) <= 1 || !bossVictim.bValid) return Plugin_Continue;
-	
-	TagsParams tParams = new TagsParams();
-	tParams.SetInt("victim", iVictim);
-	
-	//Possible crash if called in same frame
-	DataPack data = new DataPack();
-	data.WriteCell(GetClientUserId(iThrower));
-	data.WriteCell(tParams);
-	RequestFrame(Frame_CallJarate, data);
-	return Plugin_Continue;
+  int iThrower = BfReadByte(msg);
+  int iVictim = BfReadByte(msg);
+  
+  if (GetClientTeam(iThrower) <= 1 || SaxtonHale_IsValidBoss(iThrower)) return Plugin_Continue;
+  
+  SaxtonHaleBase bossVictim = SaxtonHaleBase(iVictim);
+  if (GetClientTeam(iVictim) <= 1 || !bossVictim.bValid) return Plugin_Continue;
+  
+  TagsParams tParams = new TagsParams();
+  tParams.SetInt("victim", iVictim);
+  
+  //Possible crash if called in same frame
+  DataPack data = new DataPack();
+  data.WriteCell(GetClientUserId(iThrower));
+  data.WriteCell(tParams);
+  RequestFrame(Frame_CallJarate, data);
+  return Plugin_Continue;
 }

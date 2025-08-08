@@ -56,16 +56,16 @@ void Dome_Init()
 void Dome_MapStart()
 {
 	//Huge prop
-	AddFileToDownloadsTable("models/kirillian/brsphere_huge.dx80.vtx");
-	AddFileToDownloadsTable("models/kirillian/brsphere_huge.dx90.vtx");
-	AddFileToDownloadsTable("models/kirillian/brsphere_huge.mdl");
-	AddFileToDownloadsTable("models/kirillian/brsphere_huge.vvd");
+	//AddFileToDownloadsTable("models/kirillian/brsphere_huge.dx80.vtx");
+	//AddFileToDownloadsTable("models/kirillian/brsphere_huge.dx90.vtx");
+	//AddFileToDownloadsTable("models/kirillian/brsphere_huge.mdl");
+	//AddFileToDownloadsTable("models/kirillian/brsphere_huge.vvd");
 
-	AddFileToDownloadsTable("materials/models/kirillian/brsphere/br_fog.vmt");
-	AddFileToDownloadsTable("materials/models/kirillian/brsphere/br_fog.vtf");
+	//AddFileToDownloadsTable("materials/models/kirillian/brsphere/br_fog.vmt");
+	//AddFileToDownloadsTable("materials/models/kirillian/brsphere/br_fog.vtf");
 
-	PrepareSound(DOME_START_SOUND);
-	PrecacheSound(DOME_NEARBY_SOUND);
+	//PrepareSound(DOME_START_SOUND);
+	//PrecacheSound(DOME_NEARBY_SOUND);
 	
 	SDK_HookGetCaptureValueForPlayer(Dome_GetCaptureValueForPlayer);
 }
@@ -112,9 +112,16 @@ public Action Dome_TriggerTouch(int iTrigger, int iToucher)
 
 public void Dome_OnCapEnabled(const char[] output, int caller, int activator, float delay)
 {
+	//Dome_SetTeam(TFTeam_Unassigned);
+
+	//RequestFrame(Dome_Frame_Prepare);
+
 	if (!g_bEnabled) return;
 	
-	Dome_Start();
+	// Reset
+	
+
+	//Dome_Start();
 }
 
 public Action Dome_BlockOutput(const char[] output, int caller, int activator, float delay)
@@ -148,6 +155,7 @@ void Dome_RoundStart()
 		SetEntPropFloat(iObjectiveRessource, Prop_Send, "m_flCustomPositionY", -1.0);
 	}
 	
+	/*
 	if (g_ConfigConvar.LookupFloatArray("vsh_dome_centre", g_vecDomeCP, sizeof(g_vecDomeCP)))
 	{
 		//Find CP to teleport
@@ -169,6 +177,7 @@ void Dome_RoundStart()
 			}
 		}
 	}
+	*/
 }
 
 void Dome_RoundArenaStart()
@@ -249,6 +258,7 @@ stock bool TraceFilter_Dome(int iEntity, int iMask, any iData)
 
 bool Dome_Start(int iCP = 0)
 {
+	/*
 	if (g_flDomeStart != 0.0)	//Check if we already have dome enabled, if so return false
 		return false;
 
@@ -286,6 +296,7 @@ bool Dome_Start(int iCP = 0)
 	
 	g_iDomeEntRef = EntIndexToEntRef(iDome);
 	RequestFrame(Dome_Frame_Prepare);
+	*/
 	return true;
 }
 
@@ -343,6 +354,7 @@ void Dome_SetTeam(TFTeam nTeam)
 
 public void Dome_Frame_Prepare()
 {
+	/*
 	if (g_flDomeStart == 0.0)
 		return;
 
@@ -405,10 +417,12 @@ public void Dome_Frame_Prepare()
 		g_flDomePreviousGameTime = GetGameTime();
 		RequestFrame(Dome_Frame_Shrink);
 	}
+	*/
 }
 
 public void Dome_Frame_Shrink()
 {
+	/*
 	if (g_flDomeStart == 0.0)
 		return;
 
@@ -462,15 +476,18 @@ public void Dome_Frame_Shrink()
 				CreateFade(iClient, _, g_iDomeColor[0], g_iDomeColor[1], g_iDomeColor[2], RoundToNearest(flAlpha));
 			}
 		}
+
 	}
 
 	g_flDomePreviousGameTime = GetGameTime();
 
 	RequestFrame(Dome_Frame_Shrink);
+	*/
 }
 
 public Action Dome_TimerBleed(Handle hTimer)
 {
+	/*
 	if (g_hDomeTimerBleed != hTimer)
 		return Plugin_Stop;
 
@@ -532,12 +549,13 @@ public Action Dome_TimerBleed(Handle hTimer)
 		SetVariantInt(15);
 		AcceptEntityInput(iEntity, "RemoveHealth");
 	}
-	
+	*/
 	return Plugin_Continue;
 }
 
 void Dome_UpdateRadius()
 {
+	/*
 	//Get current game time
 	float flGameTime = GetGameTime();
 	float flGameTimeDifference = flGameTime - g_flDomePreviousGameTime;
@@ -559,10 +577,12 @@ void Dome_UpdateRadius()
 	
 	//Update global variable
 	g_flDomeRadius = flRadius;
+	*/
 }
 
 float Dome_GetDistance(int iEntity)
 {
+	/*
 	float vecPos[3];
 	
 	//Client
@@ -574,8 +594,8 @@ float Dome_GetDistance(int iEntity)
 		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecPos);
 	
 	else return -1.0;
-	
-	return GetVectorDistance(vecPos, g_vecDomeCP);
+	*/
+	return 0.0;//GetVectorDistance(vecPos, g_vecDomeCP);
 }
 
 bool Dome_IsDomeProp(int iProp)
@@ -588,6 +608,7 @@ bool Dome_IsDomeProp(int iProp)
 
 bool Dome_IsEntityOutside(int iEntity, bool bIsGettingHurt = false)
 {
+	/*
 	if (bIsGettingHurt)
 	{
 		if (0 < iEntity <= MaxClients)
@@ -599,7 +620,7 @@ bool Dome_IsEntityOutside(int iEntity, bool bIsGettingHurt = false)
 			return (g_flDomeStart > 0.0 && Dome_GetTeam() != view_as<TFTeam>(GetEntProp(iEntity, Prop_Send, "m_iTeamNum")) && Dome_GetDistance(iEntity) > g_flDomeRadius)
 		}
 	}
-	
+	*/
 	return g_flDomeStart > 0.0 && Dome_GetDistance(iEntity) > g_flDomeRadius;
 }
 
