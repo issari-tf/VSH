@@ -21,7 +21,7 @@
 
 #include "include/saxtonhale.inc"
 
-#define UPDATE_URL                ""
+#define UPDATE_URL                "https://raw.githubusercontent.com/issari-tf/VSH/main/updater.txt"
 
 #define PLUGIN_VERSION          "2.1.1"
 #define PLUGIN_VERSION_REVISION "manual"
