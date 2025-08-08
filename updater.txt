@@ -1,0 +1,12 @@
+"Updater" {
+	"Information" {
+		"Version" {
+			"Latest"	"2.1.1"
+		}
+		"Notes"	"Implementation of Updater to Manage config"
+	}
+	
+	"Files" {
+    "Source"	"Path_SM/configs/vsh/vsh.cfg
+	}
+}

@@ -7,7 +7,7 @@ enum
 
 enum MenuBossOption
 {
-  MenuBossOption_Unknown,	// Also used for "back" button
+  MenuBossOption_Unknown,	//Also used for "back" button
   MenuBossOption_Select,
   MenuBossOption_Random,
   MenuBossOption_None
@@ -66,8 +66,8 @@ void MenuBoss_DisplaySetBoss(int iClient, SaxtonHaleClassType nClassType, MenuBo
   hMenuList.SetTitle("%s\n---", g_menuBossListInfo[nClassType].sTitle);
   hMenuList.AddItem("__back__", "<- back");
   
-  if (iFlags & MenuBossFlags_Random)
-    hMenuList.AddItem("__random__", "Random");
+  //if (iFlags & MenuBossFlags_Random)
+  //  hMenuList.AddItem("__random__", "Random");
   
   if (iFlags & MenuBossFlags_None)
     hMenuList.AddItem("__none__", "None");
@@ -110,8 +110,21 @@ public int MenuBoss_SelectBoss(Menu hMenu, MenuAction action, int iClient, int i
   }
   else if (action == MenuAction_Select)
   {
-    char sSelect[MAX_TYPE_CHAR];
-    hMenu.GetItem(iSelect, sSelect, sizeof(sSelect));
+    char sSelect[64]; // or MAX_TYPE_CHAR if defined
+    hMenu.GetItem(iSelect, sSelect, sizeof(sSelect)); // must be called first!
+
+    if (StrEqual(sSelect, "__back__"))
+    {
+      return 0;
+    }
+
+    if (StrEqual(sSelect, "__none__"))
+    {
+      SetClientCookie(iClient, g_SetBossCookie, "");
+      PrintToChat(iClient, "%s You have selected: None", TEXT_TAG);
+      return 0;
+    }
+
     SetClientCookie(iClient, g_SetBossCookie, sSelect);
     PrintToChat(iClient, "%s You have selected: %s", TEXT_TAG, sSelect);
   }

@@ -12,10 +12,16 @@
 #tryinclude <tf2items>
 #define REQUIRE_EXTENSIONS
 
+#undef REQUIRE_PLUGIN
+#tryinclude <updater>
+#define REQUIRE_PLUGIN
+
 #pragma semicolon 1
 #pragma newdecls required
 
 #include "include/saxtonhale.inc"
+
+#define UPDATE_URL                ""
 
 #define PLUGIN_VERSION          "2.1.1"
 #define PLUGIN_VERSION_REVISION "manual"
@@ -48,6 +54,29 @@
 #define SOUND_NULL        "vo/null.mp3"
 
 #define PARTICLE_GHOST    "ghost_appearation"
+
+// HIDEHUD_DEFINES
+#define NONE 
+#define	HIDEHUD_WEAPONSELECTION   (1<<0)  // Hide ammo count & weapon selection
+#define	HIDEHUD_FLASHLIGHT        (1<<1)
+#define	HIDEHUD_ALL               (1<<2)
+#define HIDEHUD_HEALTH            (1<<3)  // Hide health & armor / suit battery
+#define HIDEHUD_PLAYERDEAD        (1<<4)  // Hide when local player's dead
+#define HIDEHUD_NEEDSUIT          (1<<5)  // Hide when the local player doesn't have the HEV suit
+#define HIDEHUD_MISCSTATUS        (1<<6)  // Hide miscellaneous status elements (trains, pickup history, death notices, etc)
+#define HIDEHUD_CHAT              (1<<7)  // Hide all communication elements (saytext, voice icon, etc)
+#define	HIDEHUD_CROSSHAIR         (1<<8)  // Hide crosshairs
+#define	HIDEHUD_VEHICLE_CROSSHAIR	(1<<9)  // Hide vehicle crosshair
+#define HIDEHUD_INVEHICLE         (1<<10)
+#define HIDEHUD_BONUS_PROGRESS    (1<<11) // Hide bonus progress display (for bonus map challenges)
+// TF2 Specific
+#define HIDEHUD_BUILDING_STATUS   (1<<12) // Hide Engineer building status
+#define HIDEHUD_CLOAK_AND_FEIGN   (1<<13)	// Hide item effect meter (cloak, etc)
+#define HIDEHUD_PIPES_AND_CHARGE  (1<<14)	// Hide demo hud
+#define HIDEHUD_METAL             (1<<15) // Metal/account hud
+#define HIDEHUD_TARGET_ID         (1<<16) // Target ID
+#define HIDEHUD_MATCH_STATUS      (1<<17) // Hide match status
+#define HIDEHUD_BITCOUNT           18
 
 const TFTeam TFTeam_Boss = TFTeam_Blue;
 const TFTeam TFTeam_Attack = TFTeam_Red;
@@ -403,6 +432,7 @@ ConVar tf_arena_preround_time;
 #include "vsh/command.sp"
 #include "vsh/console.sp"
 #include "vsh/cookies.sp"
+#include "vsh/dome.sp" // TODO: remove or change to different cap type
 #include "vsh/event.sp"
 #include "vsh/forward.sp"
 #include "vsh/hud.sp"
@@ -480,6 +510,7 @@ public void OnPluginStart()
   Command_Init();
   Console_Init();
   Cookies_Init();
+  Dome_Init(); // TODO: rename or remove
   Event_Init();
   FuncClass_Init();
   FuncHook_Init();
@@ -665,20 +696,21 @@ public void OnPluginStart()
 }
 
 public Action Command_damagetracker(int client, int args) {
-	if( client==0) {
+	if (client==0) 
+  {
 		PrintToServer("[VSH 2] The damage tracker cannot be enabled by Console.");
 		return Plugin_Handled;
-	} else if( args==0 ) 
+	} 
+  else if(args==0) 
   {
     // At start of function or block:
-char playersetting[4]; // Enough for "Off" or "On"
-if (g_dmg[client].DmgSetting == 0) {
-    strcopy(playersetting, sizeof(playersetting), "Off");
-} else {
-    strcopy(playersetting, sizeof(playersetting), "On");
-}
-PrintToChat(client, "[VSH] The damage tracker is %s.\n[VSH] Change it by saying \"!haledmg on [R] [G] [B] [A]\" or \"!haledmg off\"!", playersetting);
-
+    char playersetting[4]; // Enough for "Off" or "On"
+    if (g_dmg[client].DmgSetting == 0) {
+      strcopy(playersetting, sizeof(playersetting), "Off");
+    } else {
+      strcopy(playersetting, sizeof(playersetting), "On");
+    }
+    PrintToChat(client, "[VSH] The damage tracker is %s.\n[VSH] Change it by saying \"!haledmg on [R] [G] [B] [A]\" or \"!haledmg off\"!", playersetting);
 		return Plugin_Handled;
 	}
 
@@ -767,6 +799,11 @@ public void OnLibraryAdded(const char[] sName)
     if (SDK_IsGiveNamedItemActive())
       PluginStop(true, "[VSH] DO NOT LOAD TF2ITEMS MIDGAME WHILE VSH IS ALREADY LOADED!!!!");
   }
+#if defined _updater_included
+	if (StrEqual(sName, "updater")) {
+		Updater_AddPlugin(UPDATE_URL);
+	}
+#endif
 }
 
 public void OnLibraryRemoved(const char[] sName)
@@ -782,6 +819,31 @@ public void OnLibraryRemoved(const char[] sName)
   }
 }
 
+
+/// UPDATER Stuff
+public void OnAllPluginsLoaded() {
+#if defined _updater_included
+	if(LibraryExists("updater")) {
+		Updater_AddPlugin(UPDATE_URL);
+	}
+#endif
+}
+
+#if defined _updater_included
+public Action Updater_OnPluginDownloading() {
+	if(!g_ConfigConvar.LookupBool("vsh2_auto_update")) {
+		return Plugin_Handled;
+	}
+	return Plugin_Continue;
+}
+
+public void Updater_OnPluginUpdated() {
+	char filename[64]; GetPluginFilename(null, filename, sizeof(filename));
+	ServerCommand("sm plugins unload %s", filename);
+	ServerCommand("sm plugins load %s", filename);
+}
+#endif
+
 public void OnNotifyPluginUnloaded(Handle hPlugin)
 {
   FuncClass_ClearUnloadedPlugin(hPlugin);
@@ -792,6 +854,18 @@ public void OnPluginEnd()
 {
   for (int iClient = 1; iClient <= MaxClients; iClient++)
   {
+    // Show Health HUD
+    int iHideHUD = GetEntProp(iClient, Prop_Send, "m_iHideHUD");
+    if (!(iHideHUD & HIDEHUD_HEALTH)) // We turned off Health HUD for boss players.
+      iHideHUD ^= HIDEHUD_HEALTH;
+    SetEntProp(iClient, Prop_Send, "m_iHideHUD", iHideHUD);
+
+    // Hide Match Status
+    iHideHUD = GetEntProp(iClient, Prop_Send, "m_iHideHUD");
+    if (!(iHideHUD & HIDEHUD_MATCH_STATUS))
+      iHideHUD ^= HIDEHUD_MATCH_STATUS; 
+    SetEntProp(iClient, Prop_Send, "m_iHideHUD", iHideHUD);
+
     if (SaxtonHale_IsValidBoss(iClient))
     {
       SaxtonHaleBase boss = SaxtonHaleBase(iClient);
@@ -1015,6 +1089,8 @@ public void OnMapStart()
     g_iSpritesLaserbeam = PrecacheModel("materials/sprites/laserbeam.vmt", true);
     g_iSpritesGlow = PrecacheModel("materials/sprites/glow01.vmt", true);
     
+    Dome_MapStart();
+    
     CreateTimer(60.0, Timer_WelcomeMessage);
 
     g_iTotalRoundPlayed = 0;
@@ -1034,7 +1110,7 @@ public void OnMapStart()
 public Action Timer_Advertise(Handle timer) 
 {
 	CreateTimer(180.0, Timer_Advertise);
-	PrintToChatAll("[VSH] Type \"!haledmg on\" to display the top 3 players! Type \"!haledmg off\" to turn it off again.");
+	PrintToChatAll("%s Type \"!haledmg on\" to display the top 3 players! Type \"!haledmg off\" to turn it off again.", TEXT_TAG);
 	return Plugin_Handled;
 }
 
@@ -1166,15 +1242,15 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
   }
   else if (StrEqual(sClassname, "team_control_point_master"))
   {
-    //SDKHook(iEntity, SDKHook_Spawn, Dome_MasterSpawn);
+    SDKHook(iEntity, SDKHook_Spawn, Dome_MasterSpawn);
   }
   else if (StrEqual(sClassname, "trigger_capture_area"))
   {
-    //SDKHook(iEntity, SDKHook_Spawn, Dome_TriggerSpawn);
+    SDKHook(iEntity, SDKHook_Spawn, Dome_TriggerSpawn);
     
-    //SDKHook(iEntity, SDKHook_StartTouch, Dome_TriggerTouch);
-    //SDKHook(iEntity, SDKHook_Touch, Dome_TriggerTouch);
-    //SDKHook(iEntity, SDKHook_EndTouch, Dome_TriggerTouch);
+    SDKHook(iEntity, SDKHook_StartTouch, Dome_TriggerTouch);
+    SDKHook(iEntity, SDKHook_Touch, Dome_TriggerTouch);
+    SDKHook(iEntity, SDKHook_EndTouch, Dome_TriggerTouch);
   }
   else if (StrEqual(sClassname, "game_end"))
   {
@@ -1396,7 +1472,7 @@ public Action Timer_WelcomeMessage(Handle hTimer)
   if (!g_bEnabled)
     return Plugin_Stop;
   
-  PrintToChatAll("%s%s Welcome to Versus Saxton Hale: Rewrite! \nType %s/vsh%s for more info.", TEXT_TAG, TEXT_COLOR, TEXT_DARK, TEXT_COLOR);
+  PrintToChatAll("%s Welcome to \x079EC34FVersus Saxton Hale\x01: \x07FB6542Rewrite!\x01 \nType \x079EC34F/vsh\x01 for more info.", TEXT_TAG);
   return Plugin_Continue;
 }
 
@@ -1454,6 +1530,11 @@ public void OnClientPutInServer(int iClient)
 	}
 
   Cookies_OnClientJoin(iClient);
+  
+  // Disable Ugly HUD
+  //int iHideHUD = GetEntProp(iClient, Prop_Send, "m_iHideHUD");
+  //iHideHUD ^= HIDEHUD_MATCH_STATUS;
+  //SetEntProp(iClient, Prop_Send, "m_iHideHUD", iHideHUD);
 }
 
 public void OnClientPostAdminCheck(int iClient)
@@ -1497,7 +1578,7 @@ public void Client_OnThink(int iClient)
 {
   if (!g_bEnabled) return;
   
-  //Dome_OnThink(iClient);
+  Dome_OnThink(iClient);
   
   if (g_iTotalRoundPlayed <= 0) return;
   

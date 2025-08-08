@@ -77,7 +77,7 @@ void NextBoss_SetSpecialClass(TFClassType nClass)
 
 void NextBoss_SetNextBoss()
 {
-  //Get every non-specs, clients who has not been selected as boss yet
+  // Get every non-specs, clients who has not been selected as boss yet
   ArrayList aNonBosses = new ArrayList();
   for (int iClient = 1; iClient <= MaxClients; iClient++)
     if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
@@ -275,7 +275,7 @@ int NextBoss_GetNextClient(ArrayList aNonBosses, bool bMultiBoss = false)
 
 void NextBoss_SetBoss(SaxtonHaleNextBoss nextBoss, ArrayList aNonBosses)
 {
-  //Fill random boss and not modifier if not set
+  // Fill random boss and not modifier if not set
   char sBossType[MAX_TYPE_CHAR], sBossMultiType[MAX_TYPE_CHAR], sModifierType[MAX_TYPE_CHAR];
   nextBoss.GetBoss(sBossType, sizeof(sBossType));
   nextBoss.GetBossMulti(sBossMultiType, sizeof(sBossMultiType));
@@ -298,20 +298,20 @@ void NextBoss_SetBoss(SaxtonHaleNextBoss nextBoss, ArrayList aNonBosses)
   // If client has a boss preference and is not a multiboss
   char sCookieBuffer[64];
   GetClientCookie(boss.iClient, g_SetBossCookie, sCookieBuffer, sizeof(sCookieBuffer));
-  if (sCookieBuffer[0] != '\0') 
-  {
-    Format(sBossType, sizeof(sBossType), sCookieBuffer);
-  }
 
+  // Check if the cookie is set and doesn't equal "GrayMann"
+  if (sCookieBuffer[0] != '\0')
+  {
+    strcopy(sBossType, sizeof(sBossType), sCookieBuffer);
+  }
   
   boss.CreateClass(sBossType);
   if (sBossMultiType[0]) 
   {
     boss.CreateClass(sBossMultiType);
   } 
-
-
-  //Select Modifiers
+  
+  // Select Modifiers
   if (!StrEmpty(sModifierType))
     boss.CreateClass(sModifierType);
   

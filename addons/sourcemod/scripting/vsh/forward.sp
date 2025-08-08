@@ -7,12 +7,12 @@ static GlobalForward g_hForwardUpdateQueue;
 
 void Forward_AskLoad()
 {
-  g_hForwardBossWin           = new GlobalForward("SaxtonHale_OnBossWin", ET_Ignore, Param_Cell);
-  g_hForwardBossLose          = new GlobalForward("SaxtonHale_OnBossLose", ET_Ignore, Param_Cell);
-  g_hForwardTeleportDamage    = new GlobalForward("SaxtonHale_OnTeleportDamage", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
-  g_hForwardChainStabs        = new GlobalForward("SaxtonHale_OnChainStabs", ET_Ignore, Param_Cell, Param_Cell);
+  g_hForwardBossWin = new GlobalForward("SaxtonHale_OnBossWin", ET_Ignore, Param_Cell);
+  g_hForwardBossLose = new GlobalForward("SaxtonHale_OnBossLose", ET_Ignore, Param_Cell);
+  g_hForwardTeleportDamage = new GlobalForward("SaxtonHale_OnTeleportDamage", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
+  g_hForwardChainStabs = new GlobalForward("SaxtonHale_OnChainStabs", ET_Ignore, Param_Cell, Param_Cell);
   g_hForwardUpdatePreferences = new GlobalForward("SaxtonHale_OnUpdatePreferences", ET_Ignore, Param_Cell, Param_Cell);
-  g_hForwardUpdateQueue       = new GlobalForward("SaxtonHale_OnUpdateQueue", ET_Ignore, Param_Cell, Param_Cell);
+  g_hForwardUpdateQueue = new GlobalForward("SaxtonHale_OnUpdateQueue", ET_Ignore, Param_Cell, Param_Cell);
 }
 
 void Forward_BossWin(TFTeam nTeam)

@@ -45,7 +45,7 @@ Action Hud_TimerUpdateBossInfo(Handle hTimer, DataPack hPack)
 
 void Hud_Think(int iClient)
 {
-  if (!g_bRoundStarted)
+  if (!g_bRoundStarted || GetClientButtons(iClient) == IN_SCORE)
     return;
   
   char sMessage[256];

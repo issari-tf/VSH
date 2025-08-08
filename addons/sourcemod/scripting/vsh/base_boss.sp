@@ -9,25 +9,25 @@ static Handle g_hClientBossRageMusicTime[MAXPLAYERS];
 
 public void SaxtonHaleBoss_Create(SaxtonHaleBase boss)
 {
-  boss.bSuperRage            = false;
+  boss.bSuperRage = false;
   
-  boss.iBaseHealth           = 0;
-  boss.iHealthPerPlayer      = 0;
-  boss.iMaxHealth            = 0;
-  boss.flHealthExponential   = 1.0;
-  boss.flHealthMultiplier    = 1.0;
+  boss.iBaseHealth = 0;
+  boss.iHealthPerPlayer = 0;
+  boss.iMaxHealth = 0;
+  boss.flHealthExponential = 1.0;
+  boss.flHealthMultiplier = 1.0;
   boss.bHealthPerPlayerAlive = false;
   
-  boss.flSpeed               = 370.0;
-  boss.flSpeedMult           = 0.07;
-  boss.flMaxRagePercentage   = 2.0;
-  boss.iRageDamage           = 0;
-  boss.flEnvDamageCap        = 200.0;
-  boss.flGlowTime            = 0.0;
+  boss.flSpeed = 370.0;
+  boss.flSpeedMult = 0.07;
+  boss.flMaxRagePercentage = 2.0;
+  boss.iRageDamage = 0;
+  boss.flEnvDamageCap = 200.0;
+  boss.flGlowTime = 0.0;
   
-  boss.bMinion               = false;
-  boss.bModel                = true;
-  boss.nClass                = TFClass_Unknown;
+  boss.bMinion = false;
+  boss.bModel = true;
+  boss.nClass = TFClass_Unknown;
 
   g_sClientBossRageMusic[boss.iClient] = "";
   g_flClientBossRageMusicVolume[boss.iClient] = 0.0;
@@ -61,7 +61,7 @@ public void SaxtonHaleBoss_OnThink(SaxtonHaleBase boss)
   bool bGlow = (boss.flGlowTime == -1.0 || boss.flGlowTime >= GetGameTime());
   SetEntProp(boss.iClient, Prop_Send, "m_bGlowEnabled", bGlow);
   
-  // Dont modify his speed during setup time or when taunting
+  //Dont modify his speed during setup time or when taunting
   if (boss.flSpeed >= 0.0 && GameRules_GetRoundState() != RoundState_Preround && !TF2_IsPlayerInCondition(boss.iClient, TFCond_Taunting))
   {
     float flMaxSpeed = boss.flSpeed + (boss.flSpeed*boss.flSpeedMult*(1.0-(float(boss.iHealth)/float(boss.iMaxHealth))));
@@ -110,11 +110,16 @@ public void SaxtonHaleBoss_OnThink(SaxtonHaleBase boss)
 
 public void SaxtonHaleBoss_OnSpawn(SaxtonHaleBase boss)
 {
+  // Disable Health HUD
+  int iHideHUD = GetEntProp(boss.iClient, Prop_Send, "m_iHideHUD");
+  iHideHUD ^= HIDEHUD_HEALTH;
+  SetEntProp(boss.iClient, Prop_Send, "m_iHideHUD", iHideHUD);
+
   if (boss.bModel)
   {
     ApplyBossModel(boss.iClient);
     
-    //Remove zombie skin cosmetic
+    // Remove zombie skin cosmetic
     SetEntProp(boss.iClient, Prop_Send, "m_bForcedSkin", 0);
     SetEntProp(boss.iClient, Prop_Send, "m_nForcedSkin", 0);
     SetEntProp(boss.iClient, Prop_Send, "m_iPlayerSkinOverride", 0);
@@ -122,20 +127,20 @@ public void SaxtonHaleBoss_OnSpawn(SaxtonHaleBase boss)
   
   if (!boss.bMinion)
   {
-    //Give every boss ground pound by default
+    // Give every boss ground pound by default
     if (!boss.HasClass("GroundPound"))
       boss.CreateClass("GroundPound");
     
-    //Give every bosses able to scare scout by default
-    if (!boss.HasClass("ScareRage")) //If boss don't have scare rage ability, give him one
+    // Give every bosses able to scare scout by default
+    if (!boss.HasClass("ScareRage")) // If boss don't have scare rage ability, give him one
       boss.CreateClass("ScareRage");
     
     if (boss.StartFunction("ScareRage", "SetClass"))
     {
-      Call_PushCell(TFClass_Scout);	//Class to set
-      Call_PushFloat(400.0);	//Radius, halfed of hale
-      Call_PushFloat(5.0);	//Duration (using default)
-      Call_PushCell(TF_STUNFLAGS_SMALLBONK);	//Stunflags
+      Call_PushCell(TFClass_Scout);	         // Class to set
+      Call_PushFloat(400.0);                 // Radius, halfed of hale
+      Call_PushFloat(5.0);                   // Duration (using default)
+      Call_PushCell(TF_STUNFLAGS_SMALLBONK); // Stunflags
       Call_Finish();
     }
   }
@@ -150,12 +155,13 @@ public void SaxtonHaleBoss_OnSpawn(SaxtonHaleBase boss)
   ClearBossEffects(boss.iClient);
   RequestFrame(ApplyBossEffects, boss.iClient);
   
-  boss.CallFunction("UpdateHudInfo", 0.0, 0.01);	//Update after frame when boss have all weapons equipped
+  // Update after frame when boss have all weapons equipped
+  boss.CallFunction("UpdateHudInfo", 0.0, 0.01);
 }
 
 public Action SaxtonHaleBoss_OnGiveNamedItem(SaxtonHaleBase boss, const char[] sClassname, int iIndex)
 {
-  //If dont modify player model, allow keep cosmetics
+  // If dont modify player model, allow keep cosmetics
   if (!boss.bModel)
   {
     int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(boss.iClient));
@@ -163,7 +169,7 @@ public Action SaxtonHaleBoss_OnGiveNamedItem(SaxtonHaleBase boss, const char[] s
       return Plugin_Continue;
   }
   
-  //Otherwise block everything by default
+  // Otherwise block everything by default
   return Plugin_Handled;
 }
 
@@ -175,10 +181,10 @@ public int SaxtonHaleBoss_CreateWeapon(SaxtonHaleBase boss, int iIndex, char[] s
 public void SaxtonHaleBoss_AddRage(SaxtonHaleBase boss, int iAmount)
 {
   int iRageRequirement = boss.iMaxRageDamage;
-  if (iRageRequirement < 0)	//No rage (-1)
+  if (iRageRequirement < 0)	// No rage (-1)
     return;
   
-  //Add/Remove rage
+  // Add/Remove rage
   int iRage = boss.iRageDamage + iAmount;
   
   int iMaxRage = RoundToNearest(float(iRageRequirement) * boss.flMaxRagePercentage);
@@ -200,13 +206,13 @@ public void SaxtonHaleBoss_OnRage(SaxtonHaleBase boss)
   
   if (boss.iRageDamage >= boss.iMaxRageDamage * 2)
   {
-    //Super rage by 200% or higher
+    // Super rage by 200% or higher
     boss.bSuperRage = true;
     boss.iRageDamage -= boss.iMaxRageDamage * 2;
   }
   else if (boss.iRageDamage >= boss.iMaxRageDamage * boss.flMaxRagePercentage)
   {
-    //Super rage by max rage percentage, but less than 200%
+    // Super rage by max rage percentage, but less than 200%
     boss.bSuperRage = true;
     boss.iRageDamage = 0;
   }
@@ -217,7 +223,7 @@ public void SaxtonHaleBoss_OnRage(SaxtonHaleBase boss)
   }
   
   if (TF2_IsPlayerInCondition(boss.iClient, TFCond_Dazed))
-    TF2_RemoveCondition(boss.iClient, TFCond_Dazed); //Allow hale to escape permastun situations when using rage
+    TF2_RemoveCondition(boss.iClient, TFCond_Dazed); // Allow hale to escape permastun situations when using rage
 
   char sSound[255];
   float flDuration = 0.0;
@@ -240,7 +246,7 @@ public void SaxtonHaleBoss_OnRage(SaxtonHaleBase boss)
 
 public Action SaxtonHaleBoss_OnAttackCritical(SaxtonHaleBase boss, int iWeapon, bool &bResult)
 {
-  //Disable random crit for bosses
+  // Disable random crit for bosses
   if (!TF2_IsForceCrit(boss.iClient))
   {
     bResult = false;
@@ -252,7 +258,7 @@ public Action SaxtonHaleBoss_OnAttackCritical(SaxtonHaleBase boss, int iWeapon, 
 
 public Action SaxtonHaleBoss_OnSoundPlayed(SaxtonHaleBase boss, int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH], int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
-  //Don't play pain sounds
+  // Don't play pain sounds
   if (StrContains(sample, "PainSevere", false) != -1)
     return Plugin_Handled;
   
@@ -263,7 +269,7 @@ public Action SaxtonHaleBoss_OnAttackDamage(SaxtonHaleBase boss, int victim, int
 {
   if (damagecustom == TF_CUSTOM_BOOTS_STOMP)
   {
-    //Because we made fall damage deal near zero, hard set stomp damage to insta kill
+    // Because we made fall damage deal near zero, hard set stomp damage to insta kill
     damage = 999.0;
     return Plugin_Changed;
   }
@@ -293,7 +299,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
         }
       }
 
-      //Make fall damage deal 0.1, so boss dont take any damage but allow stomp damage hook to work 
+      // Make fall damage deal 0.1, so boss dont take any damage but allow stomp damage hook to work 
       damage = 0.1;
       action = Plugin_Changed;
     }
@@ -343,7 +349,7 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
   if (damagecustom == TF_CUSTOM_SPELL_FIREBALL) 
   {
     //Ensure damage is consistent and prevent knockback.
-    damagetype |= DMG_PREVENT_PHYSICS_FORCE;
+    damagetype &= ~DMG_PREVENT_PHYSICS_FORCE;
     TF2_RemoveCondition(boss.iClient, TFCond_OnFire);
     TF2_IgnitePlayer(boss.iClient, attacker, 4.0);
     damage = 30.0;
@@ -363,7 +369,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sunleashed a %sHADOUKEN %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -371,7 +378,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %schanneled the %sHIGH NOON %sand obliterated %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(9001);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -379,7 +387,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sslammed %s%N %sto the moon with a %sGRAND SLAM!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
       damage = float(8000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -387,7 +396,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sperformed a lethal %sFENCING LUNGE %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(8000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -395,7 +405,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sstabbed %s%N %swith an %sARROW!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
       damage = float(5000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -403,7 +414,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sthrew a %sTAUNT GRENADE %sand blew up %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(9001);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -411,7 +423,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %swent full %sBARBARIAN %sand crushed %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -419,7 +432,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sexecuted an %sUBERSLICE %son %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -427,7 +441,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %ssmashed %s%N %swith a mighty %sENGY SMASH!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_BLUE, boss.iClient, COLOR_DEFAULT, COLOR_YELLOW);
       damage = float(5000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -435,7 +450,8 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %sused the %sENGY ARM %sto obliterate %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
 
@@ -443,14 +459,14 @@ public Action SaxtonHaleBoss_OnTakeDamage(SaxtonHaleBase boss, int &attacker, in
     {
       PrintToChatAll("%s[VSH] %s%N %striggered %sARMAGEDDON %sand erased %s%N!", COLOR_OLIVE, COLOR_RED, attacker, COLOR_DEFAULT, COLOR_YELLOW, COLOR_DEFAULT, COLOR_BLUE, boss.iClient);
       damage = float(5000);
-      //damagetype  |= DMG_CRIT;
+      if ((damagetype & DMG_CRIT)) 
+        damagetype ^= DMG_CRIT;
       action = Plugin_Changed;
     }
   }
 
 
-  if (//GetEntityFlags(boss.iClient) & FL_ONGROUND || 
-  TF2_IsUbercharged(boss.iClient))
+  if (TF2_IsUbercharged(boss.iClient))
 	{
 		damagetype |= DMG_PREVENT_PHYSICS_FORCE;
 		action = Plugin_Changed;
@@ -564,7 +580,7 @@ public void ApplyBossModel(int iClient)
   SetVariantString(sModel);
   AcceptEntityInput(iClient, "SetCustomModel");
   SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
-  //SetEntPropFloat(iClient, Prop_Send, "m_flModelScale", 1.25);
+  //SetEntPropFloat(iClient, Prop_Send, "m_flModelScale", 1.25); // TODO
 }
 
 public Action Timer_BossRageMusic(Handle hTimer, SaxtonHaleBase boss)
@@ -576,14 +592,14 @@ public Action Timer_BossRageMusic(Handle hTimer, SaxtonHaleBase boss)
   
   if (g_flClientBossRageMusicVolume[boss.iClient] > 0.0)
   {
-    //Start music fade
+    // Start music fade
     g_flClientBossRageMusicVolume[boss.iClient] -= 0.1;
     EmitSoundToAll(g_sClientBossRageMusic[boss.iClient], boss.iClient, SNDCHAN_AUTO, SNDLEVEL_SCREAMING, SND_CHANGEVOL, g_flClientBossRageMusicVolume[boss.iClient]);
     g_hClientBossRageMusicTime[boss.iClient] = CreateTimer(0.1, Timer_BossRageMusic, boss);
   }
   else
   {
-    //Music ends
+    // Music ends
     g_flClientBossRageMusicVolume[boss.iClient] = 0.0;
     StopSound(boss.iClient, SNDCHAN_AUTO, g_sClientBossRageMusic[boss.iClient]);
   }

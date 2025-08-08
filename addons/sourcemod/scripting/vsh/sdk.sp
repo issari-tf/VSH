@@ -209,6 +209,12 @@ void SDK_HookGiveNamedItem(int iClient)
     g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient, Hook_GiveNamedItemRemoved, Hook_GiveNamedItem);
 }
 
+void SDK_HookGetCaptureValueForPlayer(DHookCallback callback)
+{
+	if (g_hHookGetCaptureValueForPlayer)
+		DHookGamerules(g_hHookGetCaptureValueForPlayer, true, _, callback);
+}
+
 void SDK_UnhookGiveNamedItem(int iClient)
 {
   if (g_iHookIdGiveNamedItem[iClient])

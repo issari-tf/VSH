@@ -264,6 +264,9 @@ public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcas
   if (!g_bEnabled || GameRules_GetProp("m_bInWaitingForPlayers"))
     return;
 
+  // Start dome stuffs regardless if first round
+	Dome_RoundStart();
+
   // Play one round of arena
   if (g_iTotalRoundPlayed <= 0)
     return;
@@ -521,6 +524,8 @@ public void Event_RoundStart(Event event, const char[] sName, bool bDontBroadcas
       if (IsClientInGame(i))
         Hud_Display(i, CHANNEL_INTRO, sMessage, flHUD, 5.0, iColor, 0, 0.0, flFade);
 
+    Dome_RoundArenaStart();
+
     // Display chat on who is next boss
     int iNextPlayer = Queue_GetPlayerFromRank(1);
     if (0 < iNextPlayer <= MaxClients && IsClientInGame(iNextPlayer))
@@ -574,6 +579,19 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
   for (int iClient = 1; iClient <= MaxClients; iClient++)
   {
     if (!IsClientInGame(iClient)) continue;
+
+
+       int iHideHUD = GetEntProp(iClient, Prop_Send, "m_iHideHUD");
+
+    // Ensure Health HUD is visible
+    //if (iHideHUD & HIDEHUD_HEALTH)
+    //    iHideHUD &= ~HIDEHUD_HEALTH;
+
+    // Ensure Match Status is hidden
+    //if (!(iHideHUD & HIDEHUD_MATCH_STATUS))
+    iHideHUD ^= HIDEHUD_MATCH_STATUS;
+    SetEntProp(iClient, Prop_Send, "m_iHideHUD", iHideHUD);
+
 
     g_iPlayerDamage[iClient] = 0;
     g_iPlayerAssistDamage[iClient] = 0;
@@ -676,52 +694,45 @@ public void Event_RoundArenaStart(Event event, const char[] sName, bool bDontBro
   }
   
   char sMessage[2048], sBuffer[256], sPreviousModifiers[256];
-  int iColor[4] = {255, 255, 255, 255};
-  bool bAllowModifiersColor = true;
-  
-  // Loop through each bosses to display
-  for (int iClient = 1; iClient <= MaxClients; iClient++)
-  {
-    SaxtonHaleBase boss = SaxtonHaleBase(iClient);
-    if (IsClientInGame(iClient) && !boss.bValid && !boss.bMinion) 
-    {
-      //TF2_RespawnPlayer(iClient);
-      TF2_RegeneratePlayer(iClient);
-      continue;
-    }
-    
-    if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
+	int iColor[4] = {255, 255, 255, 255};
+	bool bAllowModifiersColor = true;
+	
+	//Loop through each bosses to display
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		SaxtonHaleBase boss = SaxtonHaleBase(iClient);
+		if (!IsClientInGame(iClient) || !boss.bValid || boss.bMinion) continue;
+		
+		if (!StrEmpty(sMessage)) StrCat(sMessage, sizeof(sMessage), "\n");
+		
+		//Get client name
+		Format(sMessage, sizeof(sMessage), "%s%N became", sMessage, iClient);
+		
+		//Display text who is what boss and modifiers with health
+		if (boss.bModifiers)
+		{
+			boss.CallFunction("GetModifiersName", sBuffer, sizeof(sBuffer));
+			Format(sMessage, sizeof(sMessage), "%s %s", sMessage, sBuffer);
+			
+			if (!StrEmpty(sPreviousModifiers) && !StrEqual(sPreviousModifiers, sBuffer))
+			{
+				//More than 1 different modifiers, dont allow colors
+				bAllowModifiersColor = false;
+			}
+			else
+			{
+				boss.CallFunction("GetRenderColor", iColor);
+			}
+			
+			Format(sPreviousModifiers, sizeof(sPreviousModifiers), sBuffer);
+		}
+		
+		//Get Boss name and health
+		boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
+		Format(sMessage, sizeof(sMessage), "%s %s with %d HP!", sMessage, sBuffer, boss.iMaxHealth);
+	}
 
-    // Get client name
-    Format(sMessage, sizeof(sMessage), "%s%N became", sMessage, iClient);
-    
-    // Display text who is what boss and modifiers with health
-    if (boss.bModifiers)
-    {
-      boss.CallFunction("GetModifiersName", sBuffer, sizeof(sBuffer));
-      Format(sMessage, sizeof(sMessage), "%s %s", sMessage, sBuffer);
-      
-      if (!StrEmpty(sPreviousModifiers) && !StrEqual(sPreviousModifiers, sBuffer))
-      {
-        // More than 1 different modifiers, dont allow colors
-        bAllowModifiersColor = false;
-      }
-      else
-      {
-        boss.CallFunction("GetRenderColor", iColor);
-      }
-      
-      Format(sPreviousModifiers, sizeof(sPreviousModifiers), sBuffer);
-    }
-    
-    // Get Boss name and health
-    boss.CallFunction("GetBossName", sBuffer, sizeof(sBuffer));
-    Format(sMessage, sizeof(sMessage), "%s %s with %d HP!", sMessage, sBuffer, boss.iMaxHealth);
 
-    // Create Annotation
-    TF2_ShowFollowingAnnotationToAll(iClient, sMessage);
-  }
-  
   if (!bAllowModifiersColor)
     for (int iRGB = 0; iRGB < sizeof(iColor); iRGB++)
       iColor[iRGB] = 255;
@@ -918,10 +929,42 @@ public void Event_RoundEnd(Event event, const char[] sName, bool bDontBroadcast)
 
 public void Event_PointCaptured(Event event, const char[] sName, bool bDontBroadcast)
 {
-  if (!g_bEnabled) return;
-  
-  //TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
-  //Dome_SetTeam(nTeam);
+	if (!g_bEnabled)
+		return;
+
+	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
+	if (nTeam == TFTeam_Red)
+	{
+		int deadPlayers[MAXPLAYERS];
+		int deadCount = 0;
+
+		// Collect dead players
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		{
+			if (IsClientInGame(iClient) && !IsPlayerAlive(iClient))
+			{
+				deadPlayers[deadCount++] = iClient;
+			}
+		}
+
+		// Shuffle
+		for (int i = deadCount - 1; i > 0; i--)
+		{
+			int j = GetRandomInt(0, i);
+			int temp = deadPlayers[i];
+			deadPlayers[i] = deadPlayers[j];
+			deadPlayers[j] = temp;
+		}
+
+		// Respawn up to 3
+		//int toRespawn = deadCount < 3 ? deadCount : 3;
+		for (int i = 0; i < 3; i++)
+		{
+			TF2_RespawnPlayer(deadPlayers[i]);
+		}
+	}
+
+	Dome_SetTeam(TFTeam_Unassigned);
 }
 
 public void Event_BroadcastAudio(Event event, const char[] sName, bool bDontBroadcast)
@@ -1164,7 +1207,7 @@ public Action Event_PlayerDeath(Event event, const char[] sName, bool bDontBroad
       for (int iClient = 1; iClient <= MaxClients; iClient++)
       {
         // if not boss and player is alive
-        if (!SaxtonHale_IsValidAttack(iClient) && IsPlayerAlive(iClient))
+        if (SaxtonHale_IsValidAttack(iClient) && IsPlayerAlive(iClient))
         {
           // Lastman standing Annotation
           char sMessage[128];
